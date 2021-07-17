@@ -14,3 +14,5 @@
 - Capaz de adicionar um income mensal (até com prazo de vencimento)
 - Verificar a existencia de API de bancos
 - Criar uma carteira geral e cada carteira vai ter "contas" e cada conta vai ter "cartões" de crédito ou débito ou a opção de saque/pix/transferencia
+
+## Como usar
