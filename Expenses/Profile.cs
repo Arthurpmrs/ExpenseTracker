@@ -14,9 +14,9 @@ namespace ExpenseTracker
             this.Name = name;
         }
 
-        public void AddAccount(string accountName, string bankName, double firstDeposit)
+        public void AddAccount(string accountName, string bankName)
         {
-            Accounts.Add(accountName, new Account(accountName, bankName, firstDeposit));
+            Accounts.Add(accountName, new Account(accountName, bankName));
         }
         public Account getAccount(string accountName)
         {

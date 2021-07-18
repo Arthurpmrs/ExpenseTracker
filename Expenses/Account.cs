@@ -15,50 +15,69 @@ namespace ExpenseTracker
             {
                 double balance = 0;
 
-                foreach (Transaction transaction in Transactions)
+                foreach (var item in Channels)
                 {
-                    balance += transaction.Value;
+                    var channel = item.Value.Transactions;
+                    foreach (Transaction transaction in channel)
+                    {
+                        balance += transaction.Value;
+                    }
                 }
                 return balance;
             } 
         }
 
-        private List<Transaction> Transactions = new List<Transaction>();
+        private Dictionary<string, Channel> Channels = new Dictionary<string, Channel>();
 
-        public Account(string name, string bank, double firstDeposit)
+        public Account(string name, string bank)
         {
             this.Name = name;
             this.Bank = bank;
-            Deposit(firstDeposit, "Deposit", "Initial Deposit", "");
+            Channels.Add("transference", new Transference("Base"));
         }
 
-        public void Deposit(double value, string channel, string note, string date = "")
+        public void AddChannel(string type, string name, long number = 0)
         {
-            Transactions.Add(new Transaction(value, channel, note, date));
+            if (type == "Debit")
+            {
+                Debit debitCard = new Debit(name, number);
+                Channels.Add(name, debitCard);
+            } else if (type == "Credit")
+            {
+                Credit creditCard = new Credit(name, number);
+                Channels.Add(name, creditCard);
+            } else
+            {
+                Console.WriteLine("Oops!");
+            }
         }
-
-        public void Expend(double value, string channel, string note, string date = "")
+        public Channel GetChannel(string channelName)
         {
-            Transactions.Add(new Transaction(-value, channel, note, date));
+            return Channels[channelName];
         }
-
         public void History()
         {
-            foreach (Transaction t in Transactions)
+            foreach (var item in Channels)
             {
-                if (t.Value > 0)
+                var channel = item.Value;
+                foreach (Transaction t in channel.Transactions)
                 {
-                    Console.BackgroundColor = ConsoleColor.DarkGreen;
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.WriteLine($"Value: R${t.Value} | Channel: {t.Channel} | Date: {t.Date.ToString("yyyy/MM/dd")} | Note: {t.Note}");
-                } else
-                {
-                    Console.BackgroundColor = ConsoleColor.DarkRed;
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.WriteLine($"Value: R${-t.Value} | Channel: {t.Channel} | Date: {t.Date.ToString("yyyy/MM/dd")} | Note: {t.Note}");
+                    if (t.Value > 0)
+                    {
+                        Console.BackgroundColor = ConsoleColor.DarkGreen;
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine($"Value: R${t.Value} | Channel: {channel.GetType()} | Date: {t.Date.ToString("yyyy/MM/dd")} | Note: {t.Note}");
+                    }
+                    else
+                    {
+                        Console.BackgroundColor = ConsoleColor.DarkRed;
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine($"Value: R${-t.Value} | Channel: {channel.GetType()} | Date: {t.Date.ToString("yyyy/MM/dd")} | Note: {t.Note}");
+                    }
+                    Console.ResetColor();
                 }
-                Console.ResetColor();
             }
+            
             Console.WriteLine("######################");
             Console.WriteLine($"Total Balance: R${this.Balance}");
         }

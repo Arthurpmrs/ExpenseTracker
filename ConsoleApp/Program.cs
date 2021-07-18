@@ -10,15 +10,21 @@ namespace ExpenseTracker
 
             string accountName = "Poupança Caixa";
 
-            myProfile.AddAccount(accountName, "CEF", 100);
+            myProfile.AddAccount(accountName, "CEF");
 
             Account myAccount1 = myProfile.getAccount(accountName);
-            myAccount1.Deposit(100.50, "Pix", "Presente");
-            myAccount1.Expend(21.50, "Debit", "Sanduiche");
-            myAccount1.Deposit(1500, "Deposit", "Bolsa Mestrado");
-            myAccount1.Expend(300, "Credit", "HD Externo", "20/06/2021");
-            myAccount1.Deposit(500, "Deposit", "Presene de natal avó", "24/12/2020");
-            myAccount1.Expend(1200, "Debit", "Bicicleta");            
+            myAccount1.AddChannel("Debit", "DebitoElo", 45214754855458);
+
+            Channel debitCard = myAccount1.GetChannel("DebitoElo");
+            Channel transference = myAccount1.GetChannel("transference");
+
+            transference.Deposit(100.50, "Gift");
+            debitCard.Expend(21.50, "Food", "Sanduiche");
+            transference.Deposit(1500, "Bolsa", "Bolsa Mestrado");
+            debitCard.Expend(300, "Amazon", "HD Externo", "20/06/2021");
+            transference.Deposit(500, "Gift", "Presene de natal avó", "24/12/2020");
+            debitCard.Expend(1200, "Amazon", "Bicicleta");
+            debitCard.Expend(10, "Food", "Morangos");
             myAccount1.History();
 
         }

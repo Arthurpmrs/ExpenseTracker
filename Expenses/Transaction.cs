@@ -6,18 +6,18 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker
 {
-    class Transaction
+    public class Transaction
     {
-        public string Note { get; }
-        public string Channel { get; }
         public double Value { get; }
+        public string Note { get; }
+        public string Tag { get; set; }
         public DateTime Date { get; }
 
-        public Transaction(double value, string channel, string note, string date = "")
+        public Transaction(double value, string tag = "", string note = "", string date = "")
         {
-            this.Note = note;
-            this.Channel = channel;
             this.Value = value;
+            this.Tag = tag;
+            this.Note = note;
             if (date == "")
             {
                 this.Date = DateTime.Now;
