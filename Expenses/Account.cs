@@ -66,13 +66,13 @@ namespace ExpenseTracker
                     {
                         Console.BackgroundColor = ConsoleColor.DarkGreen;
                         Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine($"Value: R${t.Value} | Channel: {channel.GetType()} | Date: {t.Date.ToString("yyyy/MM/dd")} | Note: {t.Note}");
+                        Console.WriteLine($"Value: R${t.Value} | Channel: {channel.GetType().Name} | Date: {t.Date.ToString("yyyy/MM/dd")} | Note: {t.Note}");
                     }
                     else
                     {
                         Console.BackgroundColor = ConsoleColor.DarkRed;
                         Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine($"Value: R${-t.Value} | Channel: {channel.GetType()} | Date: {t.Date.ToString("yyyy/MM/dd")} | Note: {t.Note}");
+                        Console.WriteLine($"Value: R${-t.Value} | Channel: {channel.GetType().Name} | Date: {t.Date.ToString("yyyy/MM/dd")} | Note: {t.Note}");
                     }
                     Console.ResetColor();
                 }
