@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "E932FiVaYS6QJQUe936uQFC/BKIA8wlrnbznDqT4S1C6XeBkx2/8bQN9wbYxeUjX9JEvfJOywH3r3xr27Dxs+Q==",
+  "dgSpecHash": "gSmL7l/IEUEVEdCJ9pkkWZh72jNYTprzfoA+qRG72/dkvCkOG5GNHhnfuDWhI6YbQ15FuZp68eDw9cffbHx7bw==",
   "success": true,
-  "projectFilePath": "C:\\Root\\Scripts\\ExpenseTracker\\ConsoleAPp\\ConsoleApp.csproj",
+  "projectFilePath": "C:\\Root\\Scripts\\ExpenseTracker\\ConsoleApp\\ConsoleApp.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }
