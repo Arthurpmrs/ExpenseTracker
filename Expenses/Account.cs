@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Data.SQLite;
 
 namespace ExpenseTracker
 {
@@ -36,6 +37,17 @@ namespace ExpenseTracker
             Channels.Add("transference", new Transference("Base"));
         }
 
+        public void TesteMethod()
+        {
+            string versionCommand = "SELECT SQLITE_VERSION()";
+            string memoryDatabase = "DataSource=:memory:";
+
+            using var con = new SQLiteConnection(memoryDatabase);
+            con.Open();
+            using var cmd = new SQLiteCommand(versionCommand, con);
+            string version = cmd.ExecuteScalar().ToString();
+            Console.WriteLine($"Version of SQLite: {version}");
+        }
         public void AddChannel(string type, string name, long number = 0)
         {
             if (type == "Debit")

@@ -15,6 +15,8 @@ namespace ExpenseTracker
             Account myAccount1 = myProfile.getAccount(accountName);
             myAccount1.AddChannel("Debit", "DebitoElo", 45214754855458);
 
+            //myAccount1.TesteMethod();
+
             Channel debitCard = myAccount1.GetChannel("DebitoElo");
             Channel transference = myAccount1.GetChannel("transference");
 
