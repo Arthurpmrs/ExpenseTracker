@@ -1,5 +1,0 @@
-C:\Root\Scripts\ExpenseTracker\App\obj\Debug\net5.0-windows\App.csproj.AssemblyReference.cache
-C:\Root\Scripts\ExpenseTracker\App\obj\Debug\net5.0-windows\MainWindow.g.cs
-C:\Root\Scripts\ExpenseTracker\App\obj\Debug\net5.0-windows\App.g.cs
-C:\Root\Scripts\ExpenseTracker\App\obj\Debug\net5.0-windows\App_MarkupCompile.cache
-C:\Root\Scripts\ExpenseTracker\App\obj\Debug\net5.0-windows\App_MarkupCompile.lref
