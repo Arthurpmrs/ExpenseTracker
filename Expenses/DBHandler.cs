@@ -25,10 +25,6 @@ namespace ExpenseTracker
             this.connectionString = $"URI=file:{this.DBPath}";
             this.CheckTables();
         }
-        public SQLiteConnection GetConnection()
-        {
-            return new SQLiteConnection(this.connectionString);
-        }
 
         private string CheckDBFile()
         {
@@ -52,7 +48,7 @@ namespace ExpenseTracker
                 { "channel", @"CREATE TABLE channel(type TEXT, name TEXT, identifier TEXT, account_id INT, FOREIGN KEY(account_id) REFERENCES account(rowid) ON DELETE SET NULL)" },
                 { "trans", @"CREATE TABLE trans(value REAL, tag TEXT, note TEXT, date TEXT, date_added TEXT, channel_id INT, FOREIGN KEY(channel_id) REFERENCES channel(rowid) ON DELETE SET NULL)"}
             };
-            using SQLiteConnection conn = GetConnection();
+            using SQLiteConnection conn = new SQLiteConnection(this.connectionString);
             conn.Open();
 
             using SQLiteCommand cmd = new SQLiteCommand(conn);
@@ -76,7 +72,7 @@ namespace ExpenseTracker
         }
         private void CreateTable(string command)
         {
-            using SQLiteConnection conn = GetConnection();
+            using SQLiteConnection conn = new SQLiteConnection(this.connectionString);
             conn.Open();
             using SQLiteCommand cmd = new SQLiteCommand(conn);
             cmd.CommandText = command;

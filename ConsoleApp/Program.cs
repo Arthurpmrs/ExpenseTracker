@@ -24,10 +24,10 @@ namespace ExpenseTracker
 
             Account myAccount1 = myProfile.GetAccount(accountName1);
             Account myAccount2 = myProfile.GetAccount(accountName2);
-            //myProfile.ShowAccounts();
-
+            myProfile.ShowAccounts();
             try
             {
+                myAccount1.AddChannel("Transference", "TransaçãoComum");
                 myAccount1.AddChannel("Debit", "DebitoElo", "45214754855458");
                 myAccount2.AddChannel("Pix", "PixBB", "arthurpmrs@gmail.com");
             }
@@ -37,7 +37,7 @@ namespace ExpenseTracker
             }
 
             Channel debitCard = myAccount1.GetChannel("DebitoElo");
-            Channel transference = myAccount1.GetChannel("Transferência Bancária");
+            Channel transference = myAccount1.GetChannel("TransaçãoComum");
             Channel pix = myAccount2.GetChannel("PixBB");
 
             pix.Deposit(1459, "borrowed", "Passagem BH mãe", "29/07/2021");
@@ -52,6 +52,15 @@ namespace ExpenseTracker
             debitCard.Expend(1200, "Amazon", "Bicicleta");
             debitCard.Expend(10, "Food", "Morangos");
             myAccount1.History();
+            double balance = myAccount1.Balance;
+            Console.WriteLine($"Total Balance: R$ {balance}");
+            myAccount2.History();
+            double balance2 = myAccount2.Balance;
+            Console.WriteLine($"Total Balance: R$ {balance2}");
+            Console.WriteLine(" ");
+
+            Transaction transaction1 = debitCard.GetTransaction(153);
+            transaction1.Print();
 
         }
     }

@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
+using System.Dynamic;
 
 namespace ExpenseTracker
 {
@@ -10,29 +11,20 @@ namespace ExpenseTracker
     {
         public string Name { get; }
 
-        private DBHandler db;
-
-        private Dictionary<string, Account> Accounts = new Dictionary<string, Account>();
+        private DBHandler DB;
 
         public Profile(string name)
         {
             this.Name = name;
-            this.db = new DBHandler(name);
+            this.DB = new DBHandler(name);
         }
 
         public void AddAccount(string accountName, string bankName, bool forceDuplicate = false)
         {
-
+            ProfileDBWrapper wrapper = new ProfileDBWrapper(this.DB.connectionString);
             if (GetAccount(accountName) == null || forceDuplicate == true)
             {
-                using SQLiteConnection conn = new SQLiteConnection(this.db.connectionString);
-                conn.Open();
-                using SQLiteCommand cmd = new SQLiteCommand(conn);
-                cmd.CommandText = @"INSERT INTO account VALUES(@accountName, @bankName)";
-                _ = cmd.Parameters.AddWithValue("@accountName", accountName);
-                _ = cmd.Parameters.AddWithValue("@bankName", bankName);
-                cmd.Prepare();
-                cmd.ExecuteNonQuery();
+                wrapper.InsertAccount(accountName, bankName);
             } else
             {
                 throw new DuplicateNameException("Account already created. Use forceDuplicate to create anyways.");
@@ -41,46 +33,29 @@ namespace ExpenseTracker
 
         public Account GetAccount(string accountName)
         {
-            Object[] arguments = new Object[] { };
-            using (SQLiteConnection conn = new SQLiteConnection(this.db.connectionString))
+            ProfileDBWrapper wrapper = new ProfileDBWrapper(this.DB.connectionString);
+            dynamic accountFields = wrapper.GetAccountByName(accountName);
+
+            if (accountFields != null)
             {
-                conn.Open();
-                using SQLiteCommand cmd = new SQLiteCommand(conn);
-                cmd.CommandText = @"SELECT rowid, * FROM account WHERE name = @name";
-                _ = cmd.Parameters.AddWithValue("@name", accountName);
-                cmd.Prepare();
-                using SQLiteDataReader reader = cmd.ExecuteReader();
-                
-                while (reader.Read())
-                {
-                    //Account acc = new Account(this.db, reader.GetInt32(0), reader["name"].ToString(), reader["bank"].ToString());
-                    arguments = new Object[] { reader.GetInt32(0),
-                                            reader["name"].ToString(),
-                                            reader["bank"].ToString()};
-                    Console.WriteLine(arguments);
-                    break;
-                }
+                return new Account(this.DB, accountFields.RowID, accountFields.Name, accountFields.Bank);
             }
-            
-            if (arguments.Length != 0)
-            {
-                return new Account(this.db, (int)arguments[0], (string)arguments[1], (string)arguments[2]);
-            } else
-            {
-                return null;
-            }
+            return accountFields;
         }
 
         public void ShowAccounts()
         {
-            using SQLiteConnection conn = new SQLiteConnection(this.db.connectionString);
-            conn.Open();
-            using SQLiteCommand cmd = new SQLiteCommand(conn);
-            cmd.CommandText = @"SELECT rowid, * FROM account";
-            using SQLiteDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
+            ProfileDBWrapper wrapper = new ProfileDBWrapper(this.DB.connectionString);
+            List<dynamic> accounts = wrapper.GetAllAccounts();
+            if (accounts != null)
             {
-                Console.WriteLine($"Acc. ID: {reader.GetInt32(0)} | Acc. Name: {reader["name"]} | Bank: {reader["bank"]}");
+                foreach (dynamic account in accounts)
+                {
+                    Console.WriteLine($"Acc. ID: {account.RowID, 4} | Bank: {account.Bank, 5} | Acc. Name: {account.Name,12}");
+                }
+            } else
+            {
+                Console.WriteLine("No Account has been added!");
             }
         }
     }

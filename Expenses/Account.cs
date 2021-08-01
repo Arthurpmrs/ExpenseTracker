@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Data;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Data.SQLite;
 
 namespace ExpenseTracker
@@ -12,65 +9,41 @@ namespace ExpenseTracker
     {
         public string Name { get; }
         public string Bank { get; }
-        public int account_id { get; }
+        public int AccountID { get; }
         public double Balance
         {
             get
             {
+                AccountDBWrapper wrapper = new AccountDBWrapper(this.DB.connectionString);
+                List<dynamic> transactions = wrapper.GetAccountTransactions(this.AccountID);
+
                 double balance = 0;
 
-                foreach (var item in Channels)
+                foreach (var item in transactions)
                 {
-                    var channel = item.Value.Transactions;
-                    foreach (Transaction transaction in channel)
-                    {
-                        balance += transaction.Value;
-                    }
+                    balance += item.Value;
                 }
                 return balance;
             }
         }
-        private DBHandler db;
+        private DBHandler DB;
 
         private Dictionary<string, Channel> Channels = new Dictionary<string, Channel>();
 
-        public Account(DBHandler db, int account_id, string name, string bank)
+        public Account(DBHandler db, int accountID, string name, string bank)
         {
             this.Name = name;
             this.Bank = bank;
-            this.account_id = account_id;
-            this.db = db;
-            try
-            {
-                AddChannel("transference", "Transferência Bancária");
-                Console.WriteLine("AQUI CRIOU A TRANSFERENCIA");
-            }
-            catch (DuplicateNameException)
-            {
-                //    if (ex is DuplicateNameException || ex is SQLiteException)
-                //    {
-                //        // write to a log, whatever...
-                //        return;
-                //    }
-                //    throw;
-            }
-
+            this.AccountID = accountID;
+            this.DB = db;
         }
 
         public void AddChannel(string type, string channelName, string identifier = "", bool forceDuplicate = false)
         {
+            AccountDBWrapper wrapper = new AccountDBWrapper(this.DB.connectionString);
             if (GetChannel(channelName) == null || forceDuplicate == true)
             {
-                using SQLiteConnection conn = new SQLiteConnection(this.db.connectionString);
-                conn.Open();
-                using SQLiteCommand cmd = new SQLiteCommand(conn);
-                cmd.CommandText = @"INSERT INTO channel VALUES(@channelType, @channelName, @channelIdentifier, @accountID)";
-                _ = cmd.Parameters.AddWithValue("@channelType", type.ToLower());
-                _ = cmd.Parameters.AddWithValue("@channelName", channelName);
-                _ = cmd.Parameters.AddWithValue("@channelIdentifier", identifier);
-                _ = cmd.Parameters.AddWithValue("@accountID", this.account_id);
-                cmd.Prepare();
-                cmd.ExecuteNonQuery();
+                wrapper.InsertCannel(type, channelName, identifier, this.AccountID);
             }
             else
             {
@@ -80,38 +53,41 @@ namespace ExpenseTracker
 
         public Channel GetChannel(string channelName)
         {
-            using SQLiteConnection conn = new SQLiteConnection(this.db.connectionString);
-            conn.Open();
-            using SQLiteCommand cmd = new SQLiteCommand(conn);
-            cmd.CommandText = @"SELECT rowid, * FROM channel WHERE name = @name";
-            cmd.Parameters.AddWithValue("@name", channelName);
-            cmd.Prepare();
-            using SQLiteDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
+            AccountDBWrapper wrapper = new AccountDBWrapper(this.DB.connectionString);
+            dynamic channelFields = wrapper.GetChannelByName(channelName);
+            
+            if (channelFields != null)
             {
-                Channel ch = Factory.Select(
-                    this.db,
-                    reader.GetInt32(0),
-                    reader["type"].ToString(),
-                    reader["name"].ToString(),
-                    reader["identifier"].ToString()
+                return Factory.Select(
+                    this.DB,
+                    channelFields.RowID,
+                    channelFields.Type,
+                    channelFields.AccountID,
+                    channelFields.Name,
+                    channelFields.Identifier
                     );
-                return ch;
             }
-            return null;
+            return channelFields;
         }
         public void History()
         {
-            using SQLiteConnection conn = new SQLiteConnection(this.db.connectionString);
-            conn.Open();
-            using SQLiteCommand cmd = new SQLiteCommand(conn);
-            cmd.CommandText = @"SELECT trans.rowid, trans.value, trans.tag, trans.channel_id, channel.rowid, channel.name FROM trans
-                                JOIN channel
-                                ON trans.channel_id = channel.rowid";
-            using SQLiteDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
+            AccountDBWrapper wrapper = new AccountDBWrapper(this.DB.connectionString);
+            List<dynamic> transactions = wrapper.GetAccountTransactions(this.AccountID);
+            if (transactions != null)
             {
-                Console.WriteLine($"ID: {reader.GetInt32(0)} | Channel: {reader.GetString(5)} | Value: {reader.GetDouble(1)} | Tag: {reader.GetString(2)}");
+                string headerTitle = $"Transactions for Account: {this.Name} - ID: {this.AccountID}";
+                Console.WriteLine(" ");
+                Console.WriteLine(new string('-', headerTitle.Length));
+                Console.WriteLine(headerTitle);
+                Console.WriteLine(new string('-', headerTitle.Length));
+                foreach (dynamic t in transactions)
+                {
+                    Console.WriteLine($"TransactionID: {t.RowID,4} | Value: {t.Value,8} | Channel: {t.ChannelType, 15} | ChName: {t.ChannelName, 12}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("No Transaction has been added!");
             }
         }
     }

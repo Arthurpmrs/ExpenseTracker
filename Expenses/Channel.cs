@@ -11,15 +11,18 @@ namespace ExpenseTracker
     {
         public string Name { get; }
 
-        public int channel_id { get; }
+        public int AccountID { get; }
 
-        private DBHandler db;
+        public int ChannelID { get; }
 
-        public Channel(DBHandler db, int channel_id, string name)
+        private DBHandler DB;
+
+        public Channel(DBHandler db, int channel_id, string name, int accountID)
         {
-            this.channel_id = channel_id;
+            this.DB = db;
+            this.ChannelID = channel_id;
             this.Name = name;
-            this.db = db;
+            this.AccountID = accountID;
         }
         public List<Transaction> Transactions = new List<Transaction>();
 
@@ -30,20 +33,8 @@ namespace ExpenseTracker
             {
                 date = dateAdded;
             }
-            using SQLiteConnection conn = new SQLiteConnection(this.db.connectionString);
-            conn.Open();
-            using SQLiteCommand cmd = new SQLiteCommand(conn);
-            cmd.CommandText = @"INSERT INTO trans VALUES(@value, @tag, @note, @date, @date_added, @channel_id)";
-            cmd.Parameters.AddWithValue("@value", value);
-            cmd.Parameters.AddWithValue("@tag", tag);
-            cmd.Parameters.AddWithValue("@note", note);
-            cmd.Parameters.AddWithValue("@date", date);
-            cmd.Parameters.AddWithValue("@date_added", dateAdded);
-            cmd.Parameters.AddWithValue("@channel_id", this.channel_id);
-
-            cmd.Prepare();
-            cmd.ExecuteNonQuery();
-            cmd.Dispose();
+            ChannelDBWrapper wrapper = new ChannelDBWrapper(this.DB.connectionString);
+            wrapper.InsertTransaction(value, tag, note, date, dateAdded, this.ChannelID);
         }
         public virtual void Expend(double value, string tag = "", string note = "", string date = "")
         {
@@ -52,47 +43,51 @@ namespace ExpenseTracker
             {
                 date = dateAdded;
             }
-            using SQLiteConnection conn = new SQLiteConnection(this.db.connectionString);
-            conn.Open();
-            using SQLiteCommand cmd = new SQLiteCommand(conn);
-            cmd.CommandText = @"INSERT INTO trans VALUES(@value, @tag, @note, @date, @date_added, @channel_id)";
-            cmd.Parameters.AddWithValue("@value", -value);
-            cmd.Parameters.AddWithValue("@tag", tag);
-            cmd.Parameters.AddWithValue("@note", note);
-            cmd.Parameters.AddWithValue("@date", date);
-            cmd.Parameters.AddWithValue("@date_added", dateAdded);
-            cmd.Parameters.AddWithValue("@channel_id", this.channel_id);
-
-            cmd.Prepare();
-            cmd.ExecuteNonQuery();
-            cmd.Dispose();
+            ChannelDBWrapper wrapper = new ChannelDBWrapper(this.DB.connectionString);
+            wrapper.InsertTransaction(-value, tag, note, date, dateAdded, this.ChannelID);
+        }
+        public virtual Transaction GetTransaction(int transactionID)
+        {
+            ChannelDBWrapper wrapper = new ChannelDBWrapper(this.DB.connectionString);
+            dynamic transactionFields = wrapper.GetTransactionByID(transactionID);
+            if (transactionFields != null)
+            {
+                return new Transaction(
+                    transactionFields.Value,
+                    transactionFields.Tag,
+                    transactionFields.Note,
+                    transactionFields.Date,
+                    transactionFields.DateAdded
+                    );
+            }
+            return transactionFields;
         }
     }
 
     public static class Factory
     {
-        public static Channel Select(DBHandler db, int channel_id, string channelType, string name = "", string identifier = "")
+        public static Channel Select(DBHandler db, int channel_id, string channelType, int accountID, string name = "", string identifier = "")
         {
             switch (channelType)
             {
                 default:
                     throw (new KeyNotFoundException($"No such channel as {channelType}"));
                 case "transference":
-                    return new Transference(db, channel_id, name);
+                    return new Transference(db, channel_id, name, accountID);
                 case "debit":
-                    return new Debit(db, channel_id, name, identifier);
+                    return new Debit(db, channel_id, name, identifier, accountID);
                 case "credit":
-                    return new Credit(db, channel_id, name, identifier);
+                    return new Credit(db, channel_id, name, identifier, accountID);
                 case "pix":
-                    return new Pix(db, channel_id, name);
+                    return new Pix(db, channel_id, name, accountID);
                 case "money":
-                    return new Money(db, channel_id);
+                    return new Money(db, channel_id, accountID);
             }
         }
     }
     public class Transference: Channel
     {
-        public Transference(DBHandler db, int channel_id, string name) : base(db, channel_id, name)
+        public Transference(DBHandler db, int channel_id, string name, int accountID) : base(db, channel_id, name, accountID)
         {
         }
     }
@@ -101,7 +96,7 @@ namespace ExpenseTracker
     {
         public string Identifier { get; }
 
-        public Debit(DBHandler db, int channel_id, string name, string identifier) : base(db, channel_id, name)
+        public Debit(DBHandler db, int channel_id, string name, string identifier,int accountID) : base(db, channel_id, name, accountID)
         {
             this.Identifier = identifier;
         }
@@ -114,7 +109,7 @@ namespace ExpenseTracker
     {
         public string Identifier { get; }
 
-        public Credit(DBHandler db, int channel_id, string name, string identifier) : base(db, channel_id, name)
+        public Credit(DBHandler db, int channel_id, string name, string identifier, int accountID) : base(db, channel_id, name, accountID)
         {
             this.Identifier = identifier;
         }
@@ -125,13 +120,13 @@ namespace ExpenseTracker
     }
     public class Pix: Channel
     {
-        public Pix(DBHandler db, int channel_id, string name) : base(db, channel_id, name)
+        public Pix(DBHandler db, int channel_id, string name, int accountID) : base(db, channel_id, name, accountID)
         {
         }
     }
     public class Money: Channel
     {
-        public Money(DBHandler db, int channel_id, string name = "Wallet") : base(db, channel_id, name)
+        public Money(DBHandler db, int channel_id, int accountID, string name = "Wallet") : base(db, channel_id, name, accountID)
         {
 
         }
