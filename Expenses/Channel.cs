@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Data.SQLite;
 
 namespace ExpenseTracker
 {
@@ -60,7 +56,7 @@ namespace ExpenseTracker
                     transactionFields.DateAdded
                     );
             }
-            return transactionFields;
+            throw new InvalidOperationException("No such Transaction on database.");
         }
     }
 

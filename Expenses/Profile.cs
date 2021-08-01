@@ -1,9 +1,6 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SQLite;
-using System.Dynamic;
 
 namespace ExpenseTracker
 {
@@ -40,7 +37,7 @@ namespace ExpenseTracker
             {
                 return new Account(this.DB, accountFields.RowID, accountFields.Name, accountFields.Bank);
             }
-            return accountFields;
+            throw new InvalidOperationException("No such Account on database.");
         }
 
         public void ShowAccounts()

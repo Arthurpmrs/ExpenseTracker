@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Data;
 using System.Collections.Generic;
-using System.Data.SQLite;
 
 namespace ExpenseTracker
 {
@@ -67,7 +66,7 @@ namespace ExpenseTracker
                     channelFields.Identifier
                     );
             }
-            return channelFields;
+            throw new InvalidOperationException("No such Channel on database.");
         }
         public void History()
         {
