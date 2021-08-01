@@ -59,7 +59,7 @@ namespace ExpenseTracker
             Console.WriteLine($"Total Balance: R$ {balance2}");
             Console.WriteLine(" ");
 
-            Transaction transaction1 = debitCard.GetTransaction(153);
+            Transaction transaction1 = debitCard.GetTransaction(6);
             transaction1.Print();
 
         }

@@ -19,6 +19,11 @@ namespace ExpenseTracker
             this.Value = value;
             this.Tag = tag;
             this.Note = note;
+            if (date == "")
+            {
+                date = DateTime.Now.ToString();
+                dateAdded = date;
+            }
             this.Date = DateTime.Parse(date);
             this.DateAdded = DateTime.Parse(dateAdded);
         }
