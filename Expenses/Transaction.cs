@@ -22,11 +22,6 @@ namespace ExpenseTracker
             this.Note = note;
             this.ChannelID = channelID;
             this.TransactionID = transactionID;
-            if (date == "")
-            {
-                date = DateTime.Now.ToString();
-                dateAdded = date;
-            }
             this.Date = date;
             this.DateAdded = dateAdded;
         }

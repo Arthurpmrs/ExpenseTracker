@@ -31,10 +31,14 @@ namespace ExpenseTracker
         
         public virtual Transaction Deposit(double value, string tag = "", string note = "", string date = "")
         {
-            string dateAdded = DateTime.Now.ToString("YYYY-MM-DD");
-            if (date != "")
+            string dateAdded = DateTime.Now.ToString("yyyy-MM-dd");
+            if (date == "")
             {
                 date = dateAdded;
+            }
+            else
+            {
+                date = DateTime.Parse(date).ToString("yyyy-MM-dd");
             }
             Transaction transaction = new Transaction(this.DB, value, tag, note, date, dateAdded, this.ChannelID);
             transaction.Save();
@@ -43,9 +47,13 @@ namespace ExpenseTracker
         public virtual Transaction Expend(double value, string tag = "", string note = "", string date = "")
         {
             string dateAdded = DateTime.Now.ToString("yyyy-MM-dd");
-            if (date != "")
+            if (date == "")
             {
                 date = dateAdded;
+            }
+            else
+            {
+                date = DateTime.Parse(date).ToString("yyyy-MM-dd");
             }
             Transaction transaction = new Transaction(this.DB, -value, tag, note, date, dateAdded, this.ChannelID);
             transaction.Save();
@@ -67,7 +75,7 @@ namespace ExpenseTracker
     {
         public static Channel Select(DBHandler db, string type, long accountID, string name = "", string identifier = "", long channelID = -1)
         {
-            switch (type)
+            switch (type.ToLower())
             {
                 default:
                     throw (new KeyNotFoundException($"No such channel as {type}"));
