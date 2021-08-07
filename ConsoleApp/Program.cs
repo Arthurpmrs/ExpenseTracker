@@ -12,33 +12,17 @@ namespace ExpenseTracker
             string accountName1 = "Poupança Caixa";
             string accountName2 = "Conta Corrente BB";
 
-            try
-            {
-                myProfile.AddAccount(accountName1, "CEF");
-                myProfile.AddAccount(accountName2, "BB");
-            }
-            catch (DuplicateNameException) {
-                Console.WriteLine($"Account already created!");
-            }
+            Account myAccount1 = myProfile.AddAccount(accountName1, "CEF");
+            Account myAccount2 = myProfile.AddAccount(accountName2, "BB");
 
-
-            Account myAccount1 = myProfile.GetAccount(accountName1);
-            Account myAccount2 = myProfile.GetAccount(accountName2);
             myProfile.ShowAccounts();
-            try
-            {
-                myAccount1.AddChannel("Transference", "TransaçãoComum");
-                myAccount1.AddChannel("Debit", "DebitoElo", "45214754855458");
-                myAccount2.AddChannel("Pix", "PixBB", "arthurpmrs@gmail.com");
-            }
-            catch (DuplicateNameException)
-            {
-                Console.WriteLine($"Channel already created!");
-            }
 
-            Channel debitCard = myAccount1.GetChannel("DebitoElo");
-            Channel transference = myAccount1.GetChannel("TransaçãoComum");
-            Channel pix = myAccount2.GetChannel("PixBB");
+            Channel transference = myAccount1.AddChannel("Transference", "TransaçãoComum");
+            Channel debitCard = myAccount1.AddChannel("Debit", "DebitoElo", "45214754855458");
+            Channel pix = myAccount2.AddChannel("Pix", "PixBB", "arthurpmrs@gmail.com");
+
+            myAccount1.ShowChannels();
+            myAccount2.ShowChannels();
 
             pix.Deposit(1459, "borrowed", "Passagem BH mãe", "29/07/2021");
             pix.Expend(700, "move", "Empresa de mudança", "14/03/2021");

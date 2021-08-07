@@ -1,63 +1,107 @@
 ﻿using System.Data.SQLite;
 using System.Dynamic;
+using System.Collections.Generic;
+using System;
 
 namespace ExpenseTracker
 {
     class ChannelDBWrapper
     {
         public string ConnectionString { get; }
-        public ChannelDBWrapper(string connectionString)
+
+        private DBHandler DB;
+
+        public ChannelDBWrapper(DBHandler db)
         {
-            this.ConnectionString = connectionString;
+            this.DB = db;
+            this.ConnectionString = db.connectionString;
         }
-        public void InsertTransaction(double value, string tag, string note, string date, string dateAdded, int channelID)
+
+        public long InsertCannel(string type, string channelName, string identifier, long accountID)
         {
+            long rowID;
             using (SQLiteConnection conn = new SQLiteConnection(this.ConnectionString))
             {
                 conn.Open();
                 using (SQLiteCommand cmd = new SQLiteCommand(conn))
                 {
-                    cmd.CommandText = @"INSERT INTO trans VALUES(@value, @tag, @note, @date, @date_added, @channel_id)";
-                    cmd.Parameters.AddWithValue("@value", value);
-                    cmd.Parameters.AddWithValue("@tag", tag);
-                    cmd.Parameters.AddWithValue("@note", note);
-                    cmd.Parameters.AddWithValue("@date", date);
-                    cmd.Parameters.AddWithValue("@date_added", dateAdded);
-                    cmd.Parameters.AddWithValue("@channel_id", channelID);
+                    cmd.CommandText = @"INSERT INTO channel VALUES(@channelType, @channelName, @channelIdentifier, @accountID)";
+                    _ = cmd.Parameters.AddWithValue("@channelType", type.ToLower());
+                    _ = cmd.Parameters.AddWithValue("@channelName", channelName);
+                    _ = cmd.Parameters.AddWithValue("@channelIdentifier", identifier);
+                    _ = cmd.Parameters.AddWithValue("@accountID", accountID);
                     cmd.Prepare();
                     cmd.ExecuteNonQuery();
                 }
+                rowID = conn.LastInsertRowId;
             }
+            return rowID;
         }
-        public dynamic GetTransactionByID(int transactionID)
+        public Channel GetChannelByName(string channelName)
         {
-            dynamic transactionFields = new ExpandoObject();
+            Channel channel;
             using (SQLiteConnection conn = new SQLiteConnection(this.ConnectionString))
             {
                 conn.Open();
                 using (SQLiteCommand cmd = new SQLiteCommand(conn))
                 {
-                    cmd.CommandText = @"SELECT rowid, * FROM trans WHERE rowid = @transaction_id";
-                    cmd.Parameters.AddWithValue("@transaction_id", transactionID);
+                    cmd.CommandText = @"SELECT rowid, * FROM channel WHERE name = @name";
+                    cmd.Parameters.AddWithValue("@name", channelName);
                     cmd.Prepare();
                     using SQLiteDataReader reader = cmd.ExecuteReader();
                     if ((reader != null && reader.HasRows) && reader.Read())
                     {
-                        transactionFields.RowID = reader.GetInt32(0);
-                        transactionFields.Value = reader.GetDouble(1);
-                        transactionFields.Tag = reader.GetString(2);
-                        transactionFields.Note = reader.GetString(3);
-                        transactionFields.Date = reader.GetString(4);
-                        transactionFields.DateAdded = reader.GetString(5);
-                        transactionFields.ChannelID = reader.GetInt32(6);
+                         channel = Factory.Select(
+                            this.DB,
+                            reader["type"].ToString(),
+                            reader.GetInt32(4),
+                            reader["name"].ToString(),
+                            reader["identifier"].ToString(),
+                            reader.GetInt32(0)
+                            );
                     }
                     else
                     {
-                        transactionFields = null;
+                        channel = null;
                     }
                 }
             }
-            return transactionFields;
+            return channel;
+        }
+        public List<Channel> GetAllChannels(long accountID)
+        {
+            List<Channel> Channels = new List<Channel>();
+            using (SQLiteConnection conn = new SQLiteConnection(this.ConnectionString))
+            {
+                conn.Open();
+                using (SQLiteCommand cmd = new SQLiteCommand(conn))
+                {
+                    cmd.CommandText = @"SELECT rowid, * FROM channel WHERE account_id = @accountID";
+                    cmd.Parameters.AddWithValue("@accountID", accountID);
+                    cmd.Prepare();
+                    using SQLiteDataReader reader = cmd.ExecuteReader();
+                    if (reader != null && reader.HasRows)
+                    {
+                        while (reader.Read())
+                        {
+                            Channel channel = Factory.Select(
+                                this.DB,
+                                reader["type"].ToString(),
+                                reader.GetInt32(4),
+                                reader["name"].ToString(),
+                                reader["identifier"].ToString(),
+                                reader.GetInt32(0)
+                            );
+                            Channels.Add(channel);
+                        }
+                    }
+                    else
+                    {
+                        Channels = null;
+                    }
+                }
+            }
+            return Channels;
         }
     }
 }

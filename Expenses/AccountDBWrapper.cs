@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Dynamic;
+using System;
 
 namespace ExpenseTracker
 {
@@ -8,58 +9,90 @@ namespace ExpenseTracker
     {
         public string ConnectionString { get; }
 
-        public AccountDBWrapper(string connectionString)
-        {
-            this.ConnectionString = connectionString;
-        }
+        private DBHandler DB;
 
-        public void InsertCannel(string type, string channelName, string identifier, int accountID)
+        public AccountDBWrapper(DBHandler db)
         {
+            this.DB = db;
+            this.ConnectionString = db.connectionString;
+        }
+        public long InsertAccount(string accountName, string bankName)
+        {
+            long rowID;
             using (SQLiteConnection conn = new SQLiteConnection(this.ConnectionString))
             {
                 conn.Open();
                 using (SQLiteCommand cmd = new SQLiteCommand(conn))
                 {
-                    cmd.CommandText = @"INSERT INTO channel VALUES(@channelType, @channelName, @channelIdentifier, @accountID)";
-                    _ = cmd.Parameters.AddWithValue("@channelType", type.ToLower());
-                    _ = cmd.Parameters.AddWithValue("@channelName", channelName);
-                    _ = cmd.Parameters.AddWithValue("@channelIdentifier", identifier);
-                    _ = cmd.Parameters.AddWithValue("@accountID", accountID);
+                    cmd.CommandText = @"INSERT INTO account VALUES(@accountName, @bankName)";
+                    _ = cmd.Parameters.AddWithValue("@accountName", accountName);
+                    _ = cmd.Parameters.AddWithValue("@bankName", bankName);
                     cmd.Prepare();
                     cmd.ExecuteNonQuery();
-                } 
+                }
+                rowID = conn.LastInsertRowId;
             }
+            return rowID;
         }
-        public dynamic GetChannelByName(string channelName)
+        public Account GetAccountByName(string accountName)
         {
-            dynamic channelFields = new ExpandoObject();
+            Account account;
             using (SQLiteConnection conn = new SQLiteConnection(this.ConnectionString))
             {
                 conn.Open();
                 using (SQLiteCommand cmd = new SQLiteCommand(conn))
                 {
-                    cmd.CommandText = @"SELECT rowid, * FROM channel WHERE name = @name";
-                    cmd.Parameters.AddWithValue("@name", channelName);
+                    cmd.CommandText = @"SELECT rowid, * FROM account WHERE name = @name";
+                    _ = cmd.Parameters.AddWithValue("@name", accountName);
                     cmd.Prepare();
                     using SQLiteDataReader reader = cmd.ExecuteReader();
                     if ((reader != null && reader.HasRows) && reader.Read())
                     {
-                        channelFields.RowID = reader.GetInt32(0);
-                        channelFields.Type = reader["type"].ToString();
-                        channelFields.Name = reader["name"].ToString();
-                        channelFields.Identifier = reader["identifier"].ToString();
-                        channelFields.AccountID = reader.GetInt32(4);
-                    } else
+                        account = new Account(
+                            this.DB,
+                            reader["name"].ToString(),
+                            reader["bank"].ToString(),
+                            reader.GetInt32(0)
+                            );
+                    }
+                    else
                     {
-                        channelFields = null;
+                        account = null;
                     }
                 }
             }
-            return channelFields;
+            return account;
         }
-        public List<dynamic> GetAccountTransactions(int accountID)
+
+        public List<Account> GetAllAccounts()
         {
-            List<dynamic> Transactions = new List<dynamic>();
+            List<Account> Accounts = new List<Account>();
+            using (SQLiteConnection conn = new SQLiteConnection(this.ConnectionString))
+            {
+                conn.Open();
+                using (SQLiteCommand cmd = new SQLiteCommand(conn))
+                {
+                    cmd.CommandText = @"SELECT rowid, * FROM account";
+                    using SQLiteDataReader reader = cmd.ExecuteReader();
+                    if (reader != null && reader.HasRows)
+                    {
+                        while (reader.Read())
+                        {
+                            Accounts.Add(new Account(this.DB, reader["name"].ToString(), reader["bank"].ToString(), reader.GetInt32(0)));
+                        }
+                    }
+                    else
+                    {
+                        Accounts = null;
+                    }
+                }
+            }
+            return Accounts;
+        }
+
+        public List<Tuple<Transaction, Channel>> GetAccountTransactions(long accountID)
+        {
+            List<Tuple<Transaction, Channel>> Entrys = new List<Tuple<Transaction, Channel>>();
             using (SQLiteConnection conn = new SQLiteConnection(this.ConnectionString))
             {
                 conn.Open();
@@ -67,38 +100,46 @@ namespace ExpenseTracker
                 {
                     cmd.CommandText = @"SELECT 
                                 trans.rowid, trans.value, trans.tag, trans.note, trans.date, trans.date_added, trans.channel_id,
-                                channel.rowid, channel.type, channel.name, channel.account_id
+                                channel.rowid, channel.type, channel.name, channel.account_id, channel.identifier
                                 FROM trans
                                 JOIN channel
                                 ON trans.channel_id = channel.rowid
-                                AND account_id = @AccountID";
-                    cmd.Parameters.AddWithValue("@AccountID", accountID);
+                                AND account_id = @accountID";
+                    cmd.Parameters.AddWithValue("@accountID", accountID);
                     cmd.Prepare();
                     using SQLiteDataReader reader = cmd.ExecuteReader();
                     if (reader != null && reader.HasRows)
                     {
                         while (reader.Read())
                         {
-                            Transactions.Add(new { 
-                                RowID = reader.GetInt32(0), 
-                                Value = reader.GetDouble(1), 
-                                Tag = reader.GetString(2),
-                                Note = reader.GetString(3),
-                                Date = reader.GetString(4),
-                                DateAdded = reader.GetString(5),
-                                ChannelID = reader.GetInt32(6),
-                                ChannelType = reader.GetString(8),
-                                ChannelName = reader.GetString(9),
-                                AccountID = reader.GetInt32(10)});
+                            Transaction transaction = new Transaction(
+                                this.DB,
+                                reader.GetDouble(1),
+                                reader.GetString(2),
+                                reader.GetString(3),
+                                reader.GetString(4),
+                                reader.GetString(5),
+                                reader.GetInt32(6),
+                                reader.GetInt32(0)
+                                );
+                            Channel channel = Factory.Select(
+                                this.DB,
+                                reader.GetString(8),
+                                reader.GetInt32(10),
+                                reader.GetString(9),
+                                reader.GetString(11),
+                                reader.GetInt32(6)
+                                );
+                            Entrys.Add(new Tuple<Transaction, Channel>(transaction, channel));
                         }
                     }
                     else
                     {
-                        Transactions = null;
+                        Entrys = null;
                     }
                 }
             }
-            return Transactions;
+            return Entrys;
         }
     }
 }

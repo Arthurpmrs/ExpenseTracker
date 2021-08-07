@@ -8,19 +8,19 @@ namespace ExpenseTracker
     {
         public string Name { get; }
         public string Bank { get; }
-        public int AccountID { get; }
+        public long AccountID { get; set; }
         public double Balance
         {
             get
             {
-                AccountDBWrapper wrapper = new AccountDBWrapper(this.DB.connectionString);
-                List<dynamic> transactions = wrapper.GetAccountTransactions(this.AccountID);
+                AccountDBWrapper wrapper = new AccountDBWrapper(this.DB);
+                List<Tuple<Transaction, Channel>> entrys = wrapper.GetAccountTransactions(this.AccountID);
 
                 double balance = 0;
 
-                foreach (var item in transactions)
+                foreach (var entry in entrys)
                 {
-                    balance += item.Value;
+                    balance += entry.Item1.Value;
                 }
                 return balance;
             }
@@ -29,49 +29,67 @@ namespace ExpenseTracker
 
         private Dictionary<string, Channel> Channels = new Dictionary<string, Channel>();
 
-        public Account(DBHandler db, int accountID, string name, string bank)
+        public Account(DBHandler db, string name, string bank, long accountID = -1)
         {
             this.Name = name;
             this.Bank = bank;
-            this.AccountID = accountID;
             this.DB = db;
+            this.AccountID = accountID;
+        }
+        public void Save()
+        {
+            AccountDBWrapper wrapper = new AccountDBWrapper(this.DB);
+            this.AccountID = wrapper.InsertAccount(this.Name, this.Bank);
         }
 
-        public void AddChannel(string type, string channelName, string identifier = "", bool forceDuplicate = false)
+        public Channel AddChannel(string type, string channelName, string identifier = "", bool forceDuplicate = false)
         {
-            AccountDBWrapper wrapper = new AccountDBWrapper(this.DB.connectionString);
-            if (GetChannel(channelName) == null || forceDuplicate == true)
+            AccountDBWrapper wrapper = new AccountDBWrapper(this.DB);
+            Channel channel;
+            try
             {
-                wrapper.InsertCannel(type, channelName, identifier, this.AccountID);
+                channel = GetChannel(channelName);
             }
-            else
+            catch (InvalidOperationException)
             {
-                throw new DuplicateNameException("Channel already created. Use forceDuplicate to create anyways.");
+                channel = Factory.Select(this.DB, type, this.AccountID, channelName, identifier);
+                channel.Save();
             }
+            return channel;
         }
 
         public Channel GetChannel(string channelName)
         {
-            AccountDBWrapper wrapper = new AccountDBWrapper(this.DB.connectionString);
-            dynamic channelFields = wrapper.GetChannelByName(channelName);
+            ChannelDBWrapper wrapper = new ChannelDBWrapper(this.DB);
+            Channel channel = wrapper.GetChannelByName(channelName);
             
-            if (channelFields != null)
+            if (channel != null)
             {
-                return Factory.Select(
-                    this.DB,
-                    channelFields.RowID,
-                    channelFields.Type,
-                    channelFields.AccountID,
-                    channelFields.Name,
-                    channelFields.Identifier
-                    );
+                return channel;
             }
             throw new InvalidOperationException("No such Channel on database.");
         }
+        public void ShowChannels()
+        {
+            ChannelDBWrapper wrapper = new ChannelDBWrapper(this.DB);
+            List<Channel> channels = wrapper.GetAllChannels(this.AccountID);
+            if (channels != null)
+            {
+                string headerTitle = $"Channels for Account: {this.Name} - ID: {this.AccountID}";
+                Console.WriteLine(" ");
+                Console.WriteLine(new string('-', headerTitle.Length));
+                Console.WriteLine(headerTitle);
+                Console.WriteLine(new string('-', headerTitle.Length));
+                foreach (Channel channel in channels)
+                {
+                    Console.WriteLine($"Ch. ID: {channel.ChannelID,4} | Type: {channel.Type,12} | Ch. Name: {channel.Name,16} | Ch. Nº: {channel.Identifier, 16}");
+                }
+            }
+        }
         public void History()
         {
-            AccountDBWrapper wrapper = new AccountDBWrapper(this.DB.connectionString);
-            List<dynamic> transactions = wrapper.GetAccountTransactions(this.AccountID);
+            AccountDBWrapper wrapper = new AccountDBWrapper(this.DB);
+            List<Tuple<Transaction, Channel>> transactions = wrapper.GetAccountTransactions(this.AccountID);
             if (transactions != null)
             {
                 string headerTitle = $"Transactions for Account: {this.Name} - ID: {this.AccountID}";
@@ -79,9 +97,18 @@ namespace ExpenseTracker
                 Console.WriteLine(new string('-', headerTitle.Length));
                 Console.WriteLine(headerTitle);
                 Console.WriteLine(new string('-', headerTitle.Length));
-                foreach (dynamic t in transactions)
+                foreach (var item in transactions)
                 {
-                    Console.WriteLine($"TransactionID: {t.RowID,4} | Value: {t.Value,8} | Channel: {t.ChannelType, 15} | ChName: {t.ChannelName, 12}");
+                    Transaction t = item.Item1;
+                    Channel c = item.Item2;
+                    string[] fields = new[] { 
+                        $"TransactionID: {t.TransactionID,4}",
+                        $"Value: {t.Value,8}",
+                        $"Tag: {t.Tag, 10}",
+                        $"Channel: {c.Type, 15}",
+                        $"ChName: {c.Name, 16}",
+                    }; 
+                    Console.WriteLine(String.Join(" | ", fields));
                 }
             }
             else

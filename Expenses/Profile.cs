@@ -16,43 +16,52 @@ namespace ExpenseTracker
             this.DB = new DBHandler(name);
         }
 
-        public void AddAccount(string accountName, string bankName, bool forceDuplicate = false)
+        public Account AddAccount(string accountName, string bankName)
         {
             ProfileDBWrapper wrapper = new ProfileDBWrapper(this.DB.connectionString);
-            if (GetAccount(accountName) == null || forceDuplicate == true)
+            Account account;
+            try
             {
-                wrapper.InsertAccount(accountName, bankName);
-            } else
+                account = GetAccount(accountName);
+            } 
+            catch (InvalidOperationException)
             {
-                throw new DuplicateNameException("Account already created. Use forceDuplicate to create anyways.");
+                account = new Account(this.DB, accountName, bankName);
+                account.Save();
             }
+            return account;
         }
 
         public Account GetAccount(string accountName)
         {
-            ProfileDBWrapper wrapper = new ProfileDBWrapper(this.DB.connectionString);
-            dynamic accountFields = wrapper.GetAccountByName(accountName);
+            AccountDBWrapper wrapper = new AccountDBWrapper(this.DB);
+            Account account = wrapper.GetAccountByName(accountName);
 
-            if (accountFields != null)
+            if (account != null)
             {
-                return new Account(this.DB, accountFields.RowID, accountFields.Name, accountFields.Bank);
+                return account;
             }
             throw new InvalidOperationException("No such Account on database.");
         }
 
         public void ShowAccounts()
         {
-            ProfileDBWrapper wrapper = new ProfileDBWrapper(this.DB.connectionString);
-            List<dynamic> accounts = wrapper.GetAllAccounts();
+            AccountDBWrapper wrapper = new AccountDBWrapper(this.DB);
+            List<Account> accounts = wrapper.GetAllAccounts();
             if (accounts != null)
             {
-                foreach (dynamic account in accounts)
+                string headerTitle = $"Accounts for Profile: {this.Name}";
+                Console.WriteLine(" ");
+                Console.WriteLine(new string('-', headerTitle.Length));
+                Console.WriteLine(headerTitle);
+                Console.WriteLine(new string('-', headerTitle.Length));
+                foreach (Account account in accounts)
                 {
-                    Console.WriteLine($"Acc. ID: {account.RowID, 4} | Bank: {account.Bank, 5} | Acc. Name: {account.Name,12}");
+                    Console.WriteLine($"Acc. ID: {account.AccountID, 4} | Bank: {account.Bank, 5} | Acc. Name: {account.Name,12}");
                 }
             } else
             {
-                Console.WriteLine("No Account has been added!");
+                throw new InvalidOperationException("No Account added to database.");
             }
         }
     }

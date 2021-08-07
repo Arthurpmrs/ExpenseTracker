@@ -7,21 +7,34 @@ namespace ExpenseTracker
         public double Value { get; }
         public string Note { get; }
         public string Tag { get; set; }
-        public DateTime Date { get; }
-        public DateTime DateAdded { get; }
+        public long ChannelID { get; set; }
+        public string Date { get; }
+        public string DateAdded { get; }
+        public long TransactionID { get; set; }
 
-        public Transaction(double value, string tag , string note , string date , string dateAdded)
+        private DBHandler DB;
+
+        public Transaction(DBHandler db, double value, string tag , string note , string date , string dateAdded, long channelID, long transactionID = -1)
         {
+            this.DB = db;
             this.Value = value;
             this.Tag = tag;
             this.Note = note;
+            this.ChannelID = channelID;
+            this.TransactionID = transactionID;
             if (date == "")
             {
                 date = DateTime.Now.ToString();
                 dateAdded = date;
             }
-            this.Date = DateTime.Parse(date);
-            this.DateAdded = DateTime.Parse(dateAdded);
+            this.Date = date;
+            this.DateAdded = dateAdded;
+        }
+
+        public void Save()
+        {
+            TransactionDBWrapper wrapper = new TransactionDBWrapper(this.DB);
+            this.TransactionID = wrapper.InsertTransaction(this.Value, this.Tag, this.Note, this.Date, this.DateAdded, this.ChannelID);
         }
 
         public void Print()

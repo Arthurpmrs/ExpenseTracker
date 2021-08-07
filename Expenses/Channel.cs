@@ -6,55 +6,58 @@ namespace ExpenseTracker
     public abstract class Channel
     {
         public string Name { get; }
-
-        public int AccountID { get; }
-
-        public int ChannelID { get; }
+        public long AccountID { get; }
+        public long ChannelID { get; set; }
+        public string Type { get; }
+        public string Identifier { get; set; }
 
         private DBHandler DB;
-
-        public Channel(DBHandler db, int channel_id, string name, int accountID)
+        
+        public Channel(DBHandler db, string type, string name, long accountID, long channelID = -1)
         {
             this.DB = db;
-            this.ChannelID = channel_id;
+            this.ChannelID = channelID;
             this.Name = name;
             this.AccountID = accountID;
+            this.Type = type;
+            this.Identifier = "";
         }
-        public List<Transaction> Transactions = new List<Transaction>();
 
-        public virtual void Deposit(double value, string tag = "", string note = "", string date = "")
+        public void Save()
+        {
+            ChannelDBWrapper wrapper = new ChannelDBWrapper(this.DB);
+            this.ChannelID = wrapper.InsertCannel(this.Type, this.Name, this.Identifier, this.AccountID);
+        }
+        
+        public virtual Transaction Deposit(double value, string tag = "", string note = "", string date = "")
         {
             string dateAdded = DateTime.Now.ToString("YYYY-MM-DD");
             if (date != "")
             {
                 date = dateAdded;
             }
-            ChannelDBWrapper wrapper = new ChannelDBWrapper(this.DB.connectionString);
-            wrapper.InsertTransaction(value, tag, note, date, dateAdded, this.ChannelID);
+            Transaction transaction = new Transaction(this.DB, value, tag, note, date, dateAdded, this.ChannelID);
+            transaction.Save();
+            return transaction;
         }
-        public virtual void Expend(double value, string tag = "", string note = "", string date = "")
+        public virtual Transaction Expend(double value, string tag = "", string note = "", string date = "")
         {
             string dateAdded = DateTime.Now.ToString("yyyy-MM-dd");
             if (date != "")
             {
                 date = dateAdded;
             }
-            ChannelDBWrapper wrapper = new ChannelDBWrapper(this.DB.connectionString);
-            wrapper.InsertTransaction(-value, tag, note, date, dateAdded, this.ChannelID);
+            Transaction transaction = new Transaction(this.DB, -value, tag, note, date, dateAdded, this.ChannelID);
+            transaction.Save();
+            return transaction;
         }
         public virtual Transaction GetTransaction(int transactionID)
         {
-            ChannelDBWrapper wrapper = new ChannelDBWrapper(this.DB.connectionString);
-            dynamic transactionFields = wrapper.GetTransactionByID(transactionID);
-            if (transactionFields != null)
+            TransactionDBWrapper wrapper = new TransactionDBWrapper(this.DB);
+            Transaction transaction = wrapper.GetTransactionByID(transactionID);
+            if (transaction != null)
             {
-                return new Transaction(
-                    transactionFields.Value,
-                    transactionFields.Tag,
-                    transactionFields.Note,
-                    transactionFields.Date,
-                    transactionFields.DateAdded
-                    );
+                return transaction;
             }
             throw new InvalidOperationException("No such Transaction on database.");
         }
@@ -62,67 +65,63 @@ namespace ExpenseTracker
 
     public static class Factory
     {
-        public static Channel Select(DBHandler db, int channel_id, string channelType, int accountID, string name = "", string identifier = "")
+        public static Channel Select(DBHandler db, string type, long accountID, string name = "", string identifier = "", long channelID = -1)
         {
-            switch (channelType)
+            switch (type)
             {
                 default:
-                    throw (new KeyNotFoundException($"No such channel as {channelType}"));
+                    throw (new KeyNotFoundException($"No such channel as {type}"));
                 case "transference":
-                    return new Transference(db, channel_id, name, accountID);
+                    return new Transference(db, type, name, accountID, channelID);
                 case "debit":
-                    return new Debit(db, channel_id, name, identifier, accountID);
+                    return new Debit(db, type, name, identifier, accountID, channelID);
                 case "credit":
-                    return new Credit(db, channel_id, name, identifier, accountID);
+                    return new Credit(db, type, name, identifier, accountID, channelID);
                 case "pix":
-                    return new Pix(db, channel_id, name, accountID);
+                    return new Pix(db, type, name, accountID, channelID);
                 case "money":
-                    return new Money(db, channel_id, accountID);
+                    return new Money(db, type, accountID, channelID);
             }
         }
     }
     public class Transference: Channel
     {
-        public Transference(DBHandler db, int channel_id, string name, int accountID) : base(db, channel_id, name, accountID)
+        public Transference(DBHandler db, string type, string name, long accountID, long channelID) : base(db, type, name,  accountID, channelID)
         {
         }
     }
 
     public class Debit: Channel
     {
-        public string Identifier { get; }
-
-        public Debit(DBHandler db, int channel_id, string name, string identifier,int accountID) : base(db, channel_id, name, accountID)
+        public Debit(DBHandler db, string type, string name, string identifier, long accountID, long channelID) : base(db, type, name, accountID, channelID)
         {
             this.Identifier = identifier;
         }
-        public override void Deposit(double value, string tag = "", string note = "", string date = "")
+        public override Transaction Deposit(double value, string tag = "", string note = "", string date = "")
         {
             throw new NotSupportedException("Not possible to make deposit with debit card");
         }
     }
     public class Credit: Channel
     {
-        public string Identifier { get; }
-
-        public Credit(DBHandler db, int channel_id, string name, string identifier, int accountID) : base(db, channel_id, name, accountID)
+        public Credit(DBHandler db, string type, string name, string identifier, long accountID, long channelID) : base(db, type, name, accountID, channelID)
         {
             this.Identifier = identifier;
         }
-        public override void Deposit(double value, string tag = "", string note = "", string date = "")
+        public override Transaction Deposit(double value, string tag = "", string note = "", string date = "")
         {
             throw new NotSupportedException("Not possible to make deposit with debit card");
         }
     }
     public class Pix: Channel
     {
-        public Pix(DBHandler db, int channel_id, string name, int accountID) : base(db, channel_id, name, accountID)
+        public Pix(DBHandler db, string type, string name, long accountID, long channelID) : base(db, type, name, accountID, channelID)
         {
         }
     }
     public class Money: Channel
     {
-        public Money(DBHandler db, int channel_id, int accountID, string name = "Wallet") : base(db, channel_id, name, accountID)
+        public Money(DBHandler db, string type, long accountID, long channelID, string name = "Wallet") : base(db, type, name, accountID, channelID)
         {
 
         }
