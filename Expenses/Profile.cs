@@ -8,7 +8,7 @@ namespace ExpenseTracker
     {
         public string Name { get; }
 
-        private DBHandler DB;
+        public DBHandler DB { get; }
 
         public Profile(string name)
         {

@@ -5,7 +5,7 @@ using System;
 
 namespace ExpenseTracker
 {
-    class AccountDBWrapper
+    public class AccountDBWrapper
     {
         public string ConnectionString { get; }
 

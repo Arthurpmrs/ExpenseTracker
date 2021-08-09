@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "App", "App\App.csproj", "{93346804-6C77-4AF9-BEC8-48549A25FC10}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GUI", "App\GUI.csproj", "{93346804-6C77-4AF9-BEC8-48549A25FC10}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Expenses", "Expenses\Expenses.csproj", "{59186D3C-3EF1-4CEB-8CEA-4FE81B733454}"
 EndProject
