@@ -1,31 +1,33 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Data.SQLite;
 
-namespace ExpenseTracker
+namespace Infrastructure
 {
-    public class DBHandler
+    public class SQLiteHandler
     {
-        private string DBStorageFolder = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "ExpenseTracker"
-            );
+        public string ConnectionString { get; set; }
+        public string DBStorageFolder { get; }
         public string DBName { get; }
-        public string DBPath { get; }
-        public string connectionString { get; }
-
-        public DBHandler(string profileName)
+        public SQLiteHandler(string dbstorageFolder, string dbname)
         {
-            this.DBName =  $"database_{profileName}.sqlite";
-            this.DBPath = this.CheckDBFile();
-            this.connectionString = $"URI=file:{this.DBPath}";
-            this.CheckTables();
+            this.DBStorageFolder = dbstorageFolder;
+            this.DBName = dbname;
         }
-
-        private string CheckDBFile()
+        public string GetConnectionString()
         {
-            if (!Directory.Exists(DBStorageFolder))
+            string DBPath = CheckDBFile();
+            this.ConnectionString = $"URI=file:{DBPath}";
+            CheckTables();
+            return this.ConnectionString;
+        }
+        public string CheckDBFile()
+        {
+            if (!Directory.Exists(this.DBStorageFolder))
             {
                 Directory.CreateDirectory(this.DBStorageFolder);
             }
@@ -37,15 +39,16 @@ namespace ExpenseTracker
                 SQLiteConnection.CreateFile(DBPath);
             }
             return DBPath;
+            
         }
-        private void CheckTables()
+        public void CheckTables()
         {
             Dictionary<string, string> Tables = new Dictionary<string, string>() {
                 { "account", @"CREATE TABLE account(name TEXT, bank TEXT)" },
                 { "transfer", @"CREATE TABLE transfer(type TEXT, name TEXT, identifier TEXT, account_id INT, FOREIGN KEY(account_id) REFERENCES account(rowid) ON DELETE SET NULL)" },
-                { "trans", @"CREATE TABLE trans(value REAL, tag TEXT, note TEXT, date TEXT, date_added TEXT, transfer_id INT, FOREIGN KEY(channel_id) REFERENCES channel(rowid) ON DELETE SET NULL)"}
+                { "trans", @"CREATE TABLE trans(value REAL, tag TEXT, note TEXT, date TEXT, date_added TEXT, transfer_id INT, account_id INT, FOREIGN KEY(transfer_id) REFERENCES transfer(rowid) ON DELETE SET NULL, FOREIGN KEY(account_id) REFERENCES account(rowid) ON DELETE SET NULL)"}
             };
-            using SQLiteConnection conn = new SQLiteConnection(this.connectionString);
+            using SQLiteConnection conn = new SQLiteConnection(this.ConnectionString);
             conn.Open();
 
             using SQLiteCommand cmd = new SQLiteCommand(conn);
@@ -65,11 +68,10 @@ namespace ExpenseTracker
                 reader.Dispose();
             }
             cmd.Dispose();
-
         }
         private void CreateTable(string command)
         {
-            using SQLiteConnection conn = new SQLiteConnection(this.connectionString);
+            using SQLiteConnection conn = new SQLiteConnection(this.ConnectionString);
             conn.Open();
             using SQLiteCommand cmd = new SQLiteCommand(conn);
             cmd.CommandText = command;

@@ -8,4 +8,8 @@
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.114.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Domain\Domain.csproj" />
+  </ItemGroup>
+
 </Project>
