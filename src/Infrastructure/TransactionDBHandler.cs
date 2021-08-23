@@ -42,5 +42,9 @@ namespace Infrastructure
             throw new NotImplementedException();
         }
 
+        public override List<Fields> GetAll()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

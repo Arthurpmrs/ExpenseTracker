@@ -7,7 +7,7 @@ using Infrastructure;
 using Domain.Entities;
 
 
-namespace Application
+namespace Application.AccountCommands
 {
     public class CreateAccountCommand
     {

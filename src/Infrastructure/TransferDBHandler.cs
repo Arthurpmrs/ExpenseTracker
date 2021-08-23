@@ -65,5 +65,10 @@ namespace Infrastructure
             }
             return fields;
         }
+
+        public override List<Fields> GetAll()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

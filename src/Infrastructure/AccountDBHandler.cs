@@ -61,5 +61,36 @@ namespace Infrastructure
             }
             return field;
         }
+        public override List<Fields> GetAll()
+        {
+            List<Fields> Accounts = new List<Fields>();
+            using (SQLiteConnection conn = new SQLiteConnection(this.ConnectionString))
+            {
+                conn.Open();
+                using (SQLiteCommand cmd = new SQLiteCommand(conn))
+                {
+                    cmd.CommandText = @"SELECT rowid, * FROM account";
+                    using SQLiteDataReader reader = cmd.ExecuteReader();
+                    if (reader != null && reader.HasRows)
+                    {
+                        while (reader.Read())
+                        {
+                            Accounts.Add(
+                                new Fields()
+                                {
+                                    AccountID = reader.GetInt32(0),
+                                    AccountName = reader["name"].ToString(),
+                                    BankName = reader["bank"].ToString()
+                                });
+                        }
+                    }
+                    else
+                    {
+                        Accounts = null;
+                    }
+                }
+            }
+            return Accounts;
+        }
     }
 }

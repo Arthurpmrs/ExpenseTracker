@@ -27,6 +27,7 @@ namespace Infrastructure
         }
         public abstract long Insert(Fields fields);
         public abstract Fields GetByName(string name);
+        public abstract List<Fields> GetAll();
     }
     public class Fields
     {
