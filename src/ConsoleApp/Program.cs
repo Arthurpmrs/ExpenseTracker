@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Infrastructure;
 using Application;
 using Application.AccountCommands;
+using Application.TransactionCommands;
 using Domain.Entities;
 
 namespace ConsoleApp
@@ -22,6 +23,30 @@ namespace ConsoleApp
                 Console.WriteLine($"Acc. ID: {a.ID} | Acc. Name: {a.Name} | Acc. Bank: {a.Bank}");
             }
 
+            DBHandler transHandler = DBHandlerFactory.Create(HandlerType.Transaction, dbname);
+            LoadTransactionsCommand Command2 = new LoadTransactionsCommand(transHandler);
+            List<Transaction> trans = Command2.Load();
+
+
+
+            //int i = 0;
+            //foreach (Transaction t in trans)
+            //{
+            //    Console.WriteLine($"i: {i} | Value: {t.Value} | AccountID {t.AccountID}");
+            //    i++;
+            //}
+            for (int i = 0; i < trans.Count; i++)
+            {
+                Console.WriteLine($"i: {i} | Value: {trans[i].Value} | AccID {trans[i].AccountID} | {trans[i].Note}");
+            }
+            DeleteTransactionCommand DelCommand = new DeleteTransactionCommand(transHandler);
+            DelCommand.Delete(trans[0]);
+
+            List<Transaction> trans1 = Command2.Load();
+            for (int i = 0; i < trans1.Count; i++)
+            {
+                Console.WriteLine($"i: {i} | Value: {trans1[i].Value} | AccID {trans1[i].AccountID} | {trans1[i].Note}");
+            }
 
             //CreateAccountCommand Command = new CreateAccountCommand(accHandler);
             //Account acc1 = Command.Create("ContaCorrenteBB", "BB");

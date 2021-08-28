@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Data.SQLite;
+using Domain.Entities;
 
 namespace Infrastructure
 {
@@ -91,6 +92,11 @@ namespace Infrastructure
                 }
             }
             return Accounts;
+        }
+
+        public override void DeleteBy(Fields field)
+        {
+            throw new NotImplementedException();
         }
     }
 }

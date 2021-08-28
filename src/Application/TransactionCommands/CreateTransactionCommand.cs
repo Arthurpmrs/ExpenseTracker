@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Infrastructure;
 using Domain.Entities;
 
-namespace Application
+namespace Application.TransactionCommands
 {
     public class CreateTransactionCommand
     {
@@ -39,17 +39,16 @@ namespace Application
                 AccountID = Account.ID
             };
             long ID = this.Handler.Insert(fields);
-            transaction = new Transaction()
-            {
-                ID = ID,
-                Value = value,
-                Note = note,
-                Tag = tag,
-                Date = date,
-                DateAdded = dateAdded,
-                TransferID = Transfer.ID,
-                AccountID = Account.ID
-            };
+            transaction = new Transaction(
+                ID,
+                value,
+                note,
+                tag,
+                date,
+                dateAdded,
+                Transfer.ID,
+                Account.ID
+                );
             this.Transfer.Transactions.Add(transaction);
             this.Account.Transactions.Add(transaction);
             return transaction;

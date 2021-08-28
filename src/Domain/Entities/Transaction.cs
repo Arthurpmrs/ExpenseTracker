@@ -16,5 +16,17 @@ namespace Domain.Entities
         public string DateAdded { get; set; }
         public long TransferID { get; set; }
         public long AccountID { get; set; }
+
+        public Transaction(long id, double value, string note, string tag, string date, string dateAdded, long transferID, long accountID)
+        {
+            this.ID = id;
+            this.Value = value;
+            this.Note = note;
+            this.Tag = tag;
+            this.Date = date;
+            this.DateAdded = dateAdded;
+            this.TransferID = transferID;
+            this.AccountID = accountID;
+        }
     }
 }

@@ -28,22 +28,7 @@ namespace Infrastructure
         public abstract long Insert(Fields fields);
         public abstract Fields GetByName(string name);
         public abstract List<Fields> GetAll();
-    }
-    public class Fields
-    {
-        public long AccountID;
-        public string AccountName;
-        public string BankName;
-        public long TransferID;
-        public string TransferType;
-        public string TransferName;
-        public string TransferIdentifier;
-        public long TransactionID;
-        public double TransactionValue;
-        public string TransactionTag;
-        public string TransactionNote;
-        public string TransactionDate;
-        public string TransactionDateAdded;
+        public abstract void DeleteBy(Fields field);
     }
     public enum HandlerType
     {

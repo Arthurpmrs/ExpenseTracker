@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Data.SQLite;
+using Domain.Entities;
 
 namespace Infrastructure
 {
@@ -67,6 +68,11 @@ namespace Infrastructure
         }
 
         public override List<Fields> GetAll()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void DeleteBy(Fields field)
         {
             throw new NotImplementedException();
         }
