@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Infrastructure;
 using Domain.Entities;
 
-namespace Application
+namespace Application.TransferCommands
 {
     public class CreateTransferCommand
     {

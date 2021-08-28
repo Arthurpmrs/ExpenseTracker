@@ -67,9 +67,40 @@ namespace Infrastructure
             return fields;
         }
 
-        public override List<Fields> GetAll()
+        public override List<Fields> GetAll(Fields field = null)
         {
-            throw new NotImplementedException();
+            List<Fields> Transfers = new List<Fields>();
+            using (SQLiteConnection conn = new SQLiteConnection(this.ConnectionString))
+            {
+                conn.Open();
+                using (SQLiteCommand cmd = new SQLiteCommand(conn))
+                {
+                    cmd.CommandText = @"SELECT rowid, * FROM transfer WHERE account_id = @accountID";
+                    cmd.Parameters.AddWithValue("@accountID", field.AccountID);
+                    cmd.Prepare();
+                    using SQLiteDataReader reader = cmd.ExecuteReader();
+                    if (reader != null && reader.HasRows)
+                    {
+                        while (reader.Read())
+                        {
+                            Transfers.Add(
+                                new Fields()
+                                {
+                                    TransferID = reader.GetInt32(0),
+                                    TransferType = reader["type"].ToString(),
+                                    TransferName = reader.GetString(2),
+                                    TransferIdentifier=reader["identifier"].ToString(),
+                                    AccountID=reader.GetInt32(4)
+                                });
+                        }
+                    }
+                    else
+                    {
+                        Transfers = null;
+                    }
+                }
+            }
+            return Transfers;
         }
 
         public override void DeleteBy(Fields field)

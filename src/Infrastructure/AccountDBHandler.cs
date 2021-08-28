@@ -62,7 +62,7 @@ namespace Infrastructure
             }
             return field;
         }
-        public override List<Fields> GetAll()
+        public override List<Fields> GetAll(Fields field = null)
         {
             List<Fields> Accounts = new List<Fields>();
             using (SQLiteConnection conn = new SQLiteConnection(this.ConnectionString))

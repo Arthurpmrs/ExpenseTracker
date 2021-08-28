@@ -27,7 +27,7 @@ namespace Infrastructure
         }
         public abstract long Insert(Fields fields);
         public abstract Fields GetByName(string name);
-        public abstract List<Fields> GetAll();
+        public abstract List<Fields> GetAll(Fields field = null);
         public abstract void DeleteBy(Fields field);
     }
     public enum HandlerType

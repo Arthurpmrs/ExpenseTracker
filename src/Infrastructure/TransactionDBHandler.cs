@@ -45,7 +45,20 @@ namespace Infrastructure
             throw new NotImplementedException();
         }
 
-        public override List<Fields> GetAll()
+        public override List<Fields> GetAll(Fields field = null)
+        {
+            List<Tuple<string, string>> props = FieldsHandler.GetSettedProperties(field);
+
+            if (props[0].Item1 == "AccountID")
+            {
+                return _GetAllAccountTransactions(long.Parse(props[0].Item2));
+            }
+            else
+            {
+                throw new NotImplementedException("Other cases are yet to be implemented");
+            }
+        }
+        private List<Fields> _GetAllAccountTransactions(long accountID)
         {
             List<Fields> Transactions = new List<Fields>();
             using (SQLiteConnection conn = new SQLiteConnection(this.ConnectionString))
@@ -53,7 +66,9 @@ namespace Infrastructure
                 conn.Open();
                 using (SQLiteCommand cmd = new SQLiteCommand(conn))
                 {
-                    cmd.CommandText = @"SELECT rowid, * FROM trans";
+                    cmd.CommandText = @"SELECT rowid, * FROM trans WHERE account_id = @accountID";
+                    cmd.Parameters.AddWithValue("@accountID", accountID);
+                    cmd.Prepare();
                     using SQLiteDataReader reader = cmd.ExecuteReader();
                     if (reader != null && reader.HasRows)
                     {

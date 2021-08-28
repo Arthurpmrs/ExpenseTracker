@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Infrastructure;
-using Application;
+using Application.TransferCommands;
 using Application.AccountCommands;
 using Application.TransactionCommands;
 using Domain.Entities;
@@ -23,9 +23,47 @@ namespace ConsoleApp
                 Console.WriteLine($"Acc. ID: {a.ID} | Acc. Name: {a.Name} | Acc. Bank: {a.Bank}");
             }
 
-            DBHandler transHandler = DBHandlerFactory.Create(HandlerType.Transaction, dbname);
-            LoadTransactionsCommand Command2 = new LoadTransactionsCommand(transHandler);
-            List<Transaction> trans = Command2.Load();
+            DBHandler transferHandler = DBHandlerFactory.Create(HandlerType.Transfer, dbname);
+            LoadTransfersCommand Command2 = new LoadTransfersCommand(transferHandler, acc[0]);
+            List<Transfer> transfers = Command2.Load();
+
+
+            foreach (Transfer t in transfers)
+            {
+                Console.WriteLine($"ID: {t.ID} | Nome: {t.Name} | Type: {t.Type} | AccName: {acc.Find(x => x.ID == t.AccountID).Name}");
+            }
+
+            LoadTransfersCommand Command3 = new LoadTransfersCommand(transferHandler, acc[1]);
+            List<Transfer> transfers2 = Command3.Load();
+
+            foreach (Transfer t1 in transfers2)
+            {
+                Console.WriteLine($"ID: {t1.ID} | Nome: {t1.Name} | Type: {t1.Type} | AccName: {acc.Find(x => x.ID == t1.AccountID).Name}");
+            }
+
+
+            DBHandler transactionHandler = DBHandlerFactory.Create(HandlerType.Transaction, dbname);
+
+            LoadTransactionsCommand Command4 = new LoadTransactionsCommand(transactionHandler, acc[0], transfers[0]);
+            List<Transaction> transactions = Command4.LoadAccountTransactions();
+            Console.WriteLine("-----------------------");
+            foreach (Transaction tr in transactions)
+            {
+                //Console.WriteLine($"Value: R${tr.Value} | Transfer: {transfers.Find(x => x.ID == tr.TransferID).Type}");
+                Console.WriteLine($"Value: R${tr.Value} | Transfer: {tr.TransferID}");
+            }
+
+
+
+
+
+
+
+
+
+            //DBHandler transHandler = DBHandlerFactory.Create(HandlerType.Transaction, dbname);
+            //LoadTransactionsCommand Command2 = new LoadTransactionsCommand(transHandler);
+            //List<Transaction> trans = Command2.Load();
 
 
 
@@ -35,18 +73,18 @@ namespace ConsoleApp
             //    Console.WriteLine($"i: {i} | Value: {t.Value} | AccountID {t.AccountID}");
             //    i++;
             //}
-            for (int i = 0; i < trans.Count; i++)
-            {
-                Console.WriteLine($"i: {i} | Value: {trans[i].Value} | AccID {trans[i].AccountID} | {trans[i].Note}");
-            }
-            DeleteTransactionCommand DelCommand = new DeleteTransactionCommand(transHandler);
-            DelCommand.Delete(trans[0]);
+            //for (int i = 0; i < trans.Count; i++)
+            //{
+            //    Console.WriteLine($"i: {i} | Value: {trans[i].Value} | AccID {trans[i].AccountID} | {trans[i].Note}");
+            //}
+            //DeleteTransactionCommand DelCommand = new DeleteTransactionCommand(transHandler);
+            //DelCommand.Delete(trans[0]);
 
-            List<Transaction> trans1 = Command2.Load();
-            for (int i = 0; i < trans1.Count; i++)
-            {
-                Console.WriteLine($"i: {i} | Value: {trans1[i].Value} | AccID {trans1[i].AccountID} | {trans1[i].Note}");
-            }
+            //List<Transaction> trans1 = Command2.Load();
+            //for (int i = 0; i < trans1.Count; i++)
+            //{
+            //    Console.WriteLine($"i: {i} | Value: {trans1[i].Value} | AccID {trans1[i].AccountID} | {trans1[i].Note}");
+            //}
 
             //CreateAccountCommand Command = new CreateAccountCommand(accHandler);
             //Account acc1 = Command.Create("ContaCorrenteBB", "BB");

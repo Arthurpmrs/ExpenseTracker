@@ -11,17 +11,23 @@ namespace Application.TransactionCommands
     public class LoadTransactionsCommand
     {
         private DBHandler Handler;
+        public Account TransactionsAccount { get; set; }
+        public Transfer TransactionsTransfer { get; set; }
+        
 
-        public LoadTransactionsCommand(DBHandler handler)
+        public LoadTransactionsCommand(DBHandler handler, Account account, Transfer transfer)
         {
             this.Handler = handler;
+            this.TransactionsAccount = account;
+            this.TransactionsTransfer = transfer;
         }
 
-        public List<Transaction> Load()
+        public List<Transaction> LoadAccountTransactions()
         {
             List<Transaction> Transactions = new List<Transaction>();
-
-            List<Fields> transactionsFields = this.Handler.GetAll();
+            
+            List<Fields> transactionsFields = this.Handler.GetAll(new Fields { AccountID = this.TransactionsAccount.ID });
+            
             foreach (Fields f in transactionsFields)
             {
                 Transactions.Add(
