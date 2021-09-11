@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Infrastructure;
 using Domain.Entities;
+using Domain.Exceptions;
 
 namespace Application.TransactionCommands
 {
@@ -27,23 +28,59 @@ namespace Application.TransactionCommands
             List<Transaction> Transactions = new List<Transaction>();
             
             List<Fields> transactionsFields = this.Handler.GetAll(new Fields { AccountID = this.TransactionsAccount.ID });
-            
-            foreach (Fields f in transactionsFields)
+
+            if (transactionsFields == null) 
             {
-                Transactions.Add(
-                    new Transaction(
-                        f.TransactionID,
-                        f.TransactionValue,
-                        f.TransactionNote,
-                        f.TransactionTag,
-                        f.TransactionDate,
-                        f.TransactionDateAdded,
-                        f.TransferID,
-                        f.AccountID
-                        )
-                    );
+                throw new EmptyStorageException("There are no Transactions in this account");
             }
-            return Transactions;
+            else
+            {
+                foreach (Fields f in transactionsFields)
+                {
+                    Transactions.Add(
+                        new Transaction(
+                            f.TransactionID,
+                            f.TransactionValue,
+                            f.TransactionNote,
+                            f.TransactionTag,
+                            f.TransactionDate,
+                            f.TransactionDateAdded,
+                            f.TransferID,
+                            f.AccountID
+                            )
+                        );
+                }
+                return Transactions;
+            }  
+        }
+
+        public List<Transaction> LoadTransferTransactions()
+        {
+            List<Transaction> Transactions = new List<Transaction>();
+            List<Fields> transactionsFields = this.Handler.GetAll(new Fields { TransferID = this.TransactionsTransfer.ID });
+            if (transactionsFields == null)
+            {
+                throw new EmptyStorageException("There are no Transactions in this transfer.");
+            }
+            else
+            {
+                foreach (Fields f in transactionsFields)
+                {
+                    Transactions.Add(
+                        new Transaction(
+                            f.TransactionID,
+                            f.TransactionValue,
+                            f.TransactionNote,
+                            f.TransactionTag,
+                            f.TransactionDate,
+                            f.TransactionDateAdded,
+                            f.TransferID,
+                            f.AccountID
+                            )
+                        );
+                }
+                return Transactions;
+            }
         }
         
     }

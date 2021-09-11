@@ -53,9 +53,13 @@ namespace Infrastructure
             {
                 return _GetAllAccountTransactions(long.Parse(props[0].Item2));
             }
-            else
+            else if (props[0].Item1 == "TransferID")
             {
-                throw new NotImplementedException("Other cases are yet to be implemented");
+                return _GetAllTransferTransactions(long.Parse(props[0].Item2));
+            }
+            else 
+            {
+                throw new InvalidOperationException("field passed must be AccountID or TransferID");
             }
         }
         private List<Fields> _GetAllAccountTransactions(long accountID)
@@ -68,6 +72,44 @@ namespace Infrastructure
                 {
                     cmd.CommandText = @"SELECT rowid, * FROM trans WHERE account_id = @accountID";
                     cmd.Parameters.AddWithValue("@accountID", accountID);
+                    cmd.Prepare();
+                    using SQLiteDataReader reader = cmd.ExecuteReader();
+                    if (reader != null && reader.HasRows)
+                    {
+                        while (reader.Read())
+                        {
+                            Transactions.Add(
+                                new Fields()
+                                {
+                                    TransactionID = reader.GetInt32(0),
+                                    TransactionValue = reader.GetDouble(1),
+                                    TransactionTag = reader.GetString(2),
+                                    TransactionNote = reader.GetString(3),
+                                    TransactionDate = reader.GetString(4),
+                                    TransactionDateAdded = reader.GetString(5),
+                                    TransferID = reader.GetInt32(6),
+                                    AccountID = reader.GetInt32(7)
+                                });
+                        }
+                    }
+                    else
+                    {
+                        Transactions = null;
+                    }
+                }
+            }
+            return Transactions;
+        }
+        public List<Fields> _GetAllTransferTransactions(long transferID)
+        {
+            List<Fields> Transactions = new List<Fields>();
+            using (SQLiteConnection conn = new SQLiteConnection(this.ConnectionString))
+            {
+                conn.Open();
+                using (SQLiteCommand cmd = new SQLiteCommand(conn))
+                {
+                    cmd.CommandText = @"SELECT rowid, * FROM trans WHERE transfer_id = @transferID";
+                    cmd.Parameters.AddWithValue("@transferID", transferID);
                     cmd.Prepare();
                     using SQLiteDataReader reader = cmd.ExecuteReader();
                     if (reader != null && reader.HasRows)
