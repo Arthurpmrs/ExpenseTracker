@@ -16,7 +16,7 @@ namespace Application.TransactionCommands
         public Transfer TransactionsTransfer { get; set; }
         
 
-        public LoadTransactionsCommand(DBHandler handler, Account account, Transfer transfer)
+        public LoadTransactionsCommand(DBHandler handler, Account account = null, Transfer transfer = null)
         {
             this.Handler = handler;
             this.TransactionsAccount = account;
@@ -50,6 +50,7 @@ namespace Application.TransactionCommands
                             )
                         );
                 }
+                this.TransactionsAccount.Transactions = Transactions;
                 return Transactions;
             }  
         }
@@ -79,6 +80,7 @@ namespace Application.TransactionCommands
                             )
                         );
                 }
+                this.TransactionsTransfer.Transactions = Transactions;
                 return Transactions;
             }
         }

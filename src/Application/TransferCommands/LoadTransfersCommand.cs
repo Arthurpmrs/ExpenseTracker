@@ -4,7 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Domain.Entities;
+using Domain.Exceptions;
 using Infrastructure;
+
 
 namespace Application.TransferCommands
 {
@@ -19,25 +21,30 @@ namespace Application.TransferCommands
             this.TransfersAccount = account;
         }
 
-        public List<Transfer> Load()
+        public Dictionary<string, Transfer> Load()
         {
-            List<Transfer> Transfers = new List<Transfer>();
+            Dictionary<string, Transfer> Transfers = new Dictionary<string, Transfer>();
             List<Fields> transfersFields = this.Handler.GetAll(new Fields { AccountID = this.TransfersAccount.ID});
-
-            foreach (Fields f in transfersFields)
+            if (transfersFields != null)
             {
-                Enum.TryParse(f.TransferType, out TransferType type);
-                Transfers.Add(
-                    TransferFactory.Create(
+                foreach (Fields f in transfersFields)
+                {
+                    Enum.TryParse(f.TransferType, out TransferType type);
+                    string transferName = f.TransferName;
+                    Transfer transferObject = TransferFactory.Create(
                         type,
                         f.TransferID,
                         f.AccountID,
                         f.TransferName,
                         f.TransferIdentifier
-                        )
-                    );
+                        );
+                    Transfers.Add(transferName, transferObject);
+                    this.TransfersAccount.AddTransfer(transferObject);
+                }
+            } else
+            {
+                throw new EmptyStorageException($"There is no Transfer in >{this.TransfersAccount.Name}< account.");
             }
-
             return Transfers;
         }
     }

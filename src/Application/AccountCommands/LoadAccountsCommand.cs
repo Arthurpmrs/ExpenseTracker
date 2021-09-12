@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Infrastructure;
 using Domain.Entities;
+using Domain.Exceptions;
 
 namespace Application.AccountCommands
 {
@@ -15,18 +16,25 @@ namespace Application.AccountCommands
         {
             this.Handler = handler;
         }
-        public List<Account> Load()
+        public Dictionary<string, Account> Load()
         {
-            List<Account> Accounts = new List<Account>();
+            Dictionary<string, Account> Accounts = new Dictionary<string, Account>();
 
             List<Fields> accountsFields = this.Handler.GetAll();
-
-            foreach (Fields f in accountsFields)
+            if (accountsFields == null)
             {
-                Accounts.Add(
-                    new Account(f.AccountID, f.AccountName, f.BankName)
-                    );
+                throw new EmptyStorageException("There is no account. Create One.");
+            } else
+            {
+                foreach (Fields f in accountsFields)
+                {
+                    Accounts.Add(
+                        f.AccountName,
+                        new Account(f.AccountID, f.AccountName, f.BankName)
+                        );
+                }
             }
+            
             return Accounts;
         }
     }

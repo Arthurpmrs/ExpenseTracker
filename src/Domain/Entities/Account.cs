@@ -25,12 +25,16 @@ namespace Domain.Entities
         }
 
         public Dictionary<string, Transfer> Transfers { get; private set; } = new Dictionary<string, Transfer>();
-        public List<Transaction> Transactions { get; private set; } = new List<Transaction>();
+        public List<Transaction> Transactions { get; set; } = new List<Transaction>();
         public Account(long id, string name, string bank)
         {
             this.ID = id;
             this.Name = name;
             this.Bank = bank;
+        }
+        public void AddTransfer(Transfer transfer)
+        {
+            this.Transfers.Add(transfer.Name, transfer);
         }
     }
 }
