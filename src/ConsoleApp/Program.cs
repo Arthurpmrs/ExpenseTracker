@@ -24,9 +24,26 @@ namespace ConsoleApp
 
 
 
+
+
             //AddSomeTransactions(dbname, accounts);
         }
 
+        public static void DeleteSome(string dbname, Dictionary<string, Account> accounts)
+        {
+            DBHandler accountHandler = DBHandlerFactory.Create(HandlerType.Account, dbname);
+            DBHandler transferHandler = DBHandlerFactory.Create(HandlerType.Transfer, dbname);
+            DBHandler transactionHandler = DBHandlerFactory.Create(HandlerType.Transaction, dbname);
+
+            Transfer pixBB = accounts["ContaCorrenteBB"].Transfers["PixBB"];
+
+            //DeleteTransactionCommand deleteTransaction = new DeleteTransactionCommand(transactionHandler, accounts["ContaCorrenteBB"],
+            //                                                                                              pixBB);
+            //deleteTransaction.Delete(pixBB.Transactions[5]);
+
+            //DeleteTransferCommand deleteTransfer = new DeleteTransferCommand(transferHandler, accounts["ContaCorrenteBB"]);
+            //deleteTransfer.Delete(pixBB);
+        }
         public static void AddSomeTransactions(string dbname, Dictionary<string, Account> accounts)
         {
             // Handlers for db access

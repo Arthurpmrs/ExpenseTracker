@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.SQLite;
 using Domain.Entities;
+using Domain.Helpers;
 
 namespace Infrastructure
 {
@@ -105,7 +106,31 @@ namespace Infrastructure
 
         public override void DeleteBy(Fields field)
         {
-            throw new NotImplementedException();
+            List<Tuple<string, string>> props = FieldsHandler.GetSettedProperties(field);
+            if (props.Count > 1)
+            {
+                throw new InvalidOperationException("Field instance sent has more than one property.");
+            }
+
+            if (props[0].Item1 == "TransferID")
+            {
+                Console.WriteLine(props[0]);
+                _DeleteByID(long.Parse(props[0].Item2));
+            }
+        }
+        private void _DeleteByID(long id)
+        {
+            using (SQLiteConnection conn = new SQLiteConnection(this.ConnectionString))
+            {
+                conn.Open();
+                using (SQLiteCommand cmd = new SQLiteCommand(conn))
+                {
+                    cmd.CommandText = @"DELETE FROM transfer WHERE rowid = @id";
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.Prepare();
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
     }
 }

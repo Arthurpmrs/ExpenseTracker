@@ -11,11 +11,16 @@ namespace Application.TransactionCommands
 {
     public class DeleteTransactionCommand
     {
+        public Account TransactionsAccount;
+        public Transfer TransactionsTransfer;
+        
         private DBHandler Handler;
 
-        public DeleteTransactionCommand(DBHandler handler)
+        public DeleteTransactionCommand(DBHandler handler, Account account, Transfer transfer)
         {
             this.Handler = handler;
+            this.TransactionsAccount = account;
+            this.TransactionsTransfer = transfer;
         }
 
         public void Delete(Transaction transaction)
@@ -26,6 +31,8 @@ namespace Application.TransactionCommands
             };
 
             this.Handler.DeleteBy(field);
+            this.TransactionsTransfer.Transactions.RemoveAll(x => x.ID == transaction.ID);
+            this.TransactionsAccount.Transactions.RemoveAll(x => x.ID == transaction.ID);
         }
     }
 }
