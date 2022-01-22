@@ -49,7 +49,7 @@ namespace Application.AccountCommands
             try
             {
                 account.Transactions = command.LoadAccountTransactions();
-            } catch (EmptyStorageException e)
+            } catch (EmptyStorageException)
             {
                 Console.WriteLine($"There are no Transactions for <{account.Name}> account.");
             }
