@@ -6,71 +6,79 @@ using Application.AccountCommands;
 using Application.TransactionCommands;
 using Application.ApplicationCommands;
 using Domain.Entities;
-using Domain.Exceptions;
+using System.CommandLine;
+using System.CommandLine.NamingConventionBinder;
+
 namespace ConsoleApp
 {
     class Program
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
+        {
+            RootCommand rootCommand = new RootCommand();
+
+            Command show = new Command("show", "Mostra todos os gastos de todas as contas e transfers");
+            show.Handler = CommandHandler.Create(Show);
+
+            Command account = new Command("account", "Criar uma conta")
+            {
+                new Argument<string>("name", "Identificação da conta (nome)"),
+                new Argument<string>("bank", "Nome do banco referente à conta.")
+            };
+            account.Handler = CommandHandler.Create<string, string>(CreateAccount);
+
+            Command transfer = new Command("transfer", "Criar meio de transferência de dinheiro.")
+            {
+                new Argument<string>("account-name", "Nome da conta a qual pertence o meio."),
+                new Argument<string>("type", "Pix ou Transference."),
+                new Argument<string>("name", "Nome do Transfer."),
+                new Argument<string>("identifier", "Número ou código de identificação da conta.")
+            };
+            transfer.Handler = CommandHandler.Create<string, string, string, string>(CreateTransfer);
+
+
+            Command create = new Command("create", "Criação de uma das entidade.")
+            {
+                account,
+                transfer
+            };
+
+            rootCommand.Add(show);
+            rootCommand.Add(create);
+
+            return rootCommand.Invoke(args);
+        }
+        public static void Show()
         {
             string dbname = "Arthurpmrs2";
             ApplicationStarterCommand starterCommand = new ApplicationStarterCommand(dbname);
-            //Dictionary<string, Account> accounts = CreateSomeAccounts(dbname);
             Dictionary<string, Account> accounts = starterCommand.Load();
-            //AddSomeTransactions(dbname, accounts);
 
+            ShowCommand showCommand = new ShowCommand(accounts);
+            showCommand.ShowAllEntries();
+        }
+        public static void CreateAccount(string name, string bank)
+        {
+            string dbname = "Arthurpmrs2";
+            ApplicationStarterCommand starterCommand = new ApplicationStarterCommand(dbname);
+            Dictionary<string, Account> accounts = starterCommand.Load();
 
             DBHandler AccountHandler = DBHandlerFactory.Create(HandlerType.Account, dbname);
-            EditAccountCommand editAccountCommand = new EditAccountCommand(AccountHandler, accounts);
+            CreateAccountCommand createAccountCommand = new CreateAccountCommand(AccountHandler);
+            Account acc = createAccountCommand.Create(name, bank);
+            Console.WriteLine($"Conta {acc.Name} criada com sucesso.");
+        }
+        public static void CreateTransfer(string accountName, string type, string name, string identifier)
+        {
+            string dbname = "Arthurpmrs2";
+            ApplicationStarterCommand starterCommand = new ApplicationStarterCommand(dbname);
+            Dictionary<string, Account> accounts = starterCommand.Load();
 
-            editAccountCommand.Edit(accounts["PoupançaCEF"], newBank: "Caixa");
+            DBHandler TransferHandler = DBHandlerFactory.Create(HandlerType.Transfer, dbname);
+            CreateTransferCommand createTransferCommand = new CreateTransferCommand(TransferHandler, accounts[accountName]);
+            Transfer transfer = createTransferCommand.Create(type, name, identifier);
 
-
-
-            //foreach (KeyValuePair<string, Account> acc in accounts)
-            //{
-            //    Console.WriteLine($"{acc.Value.Name} | ID: {acc.Value.ID}");
-            //}
-
-
-
-            //foreach (KeyValuePair<string, Account> acc in accounts)
-            //{
-            //    Console.WriteLine(acc.Key);
-            //}
-
-            //DBHandler AccountHandler = DBHandlerFactory.Create(HandlerType.Account, dbname);
-
-            //DeleteAccountCommand AccDelComm = new DeleteAccountCommand(AccountHandler, accounts);
-            //AccDelComm.Delete(accounts["ContaCorrenteBB"]);
-
-
-            //Console.WriteLine("-----------------------------------------------");
-            //Console.WriteLine("-------------------acclist---------------------");
-            //Console.WriteLine("-----------------------------------------------");
-
-            //foreach (KeyValuePair<string, Account> acc in accounts)
-            //{
-            //    Console.WriteLine(acc.Key);
-            //}
-
-
-
-            //Console.WriteLine("-----------------------------------------------");
-            //Console.WriteLine("--------------------show-----------------------");
-            //Console.WriteLine("-----------------------------------------------");
-
-
-            //ShowCommand showCommand = new ShowCommand(accounts);
-            //showCommand.ShowAllEntries();
-
-
-
-
-
-
-
-            //AddSomeTransactions(dbname, accounts);
+            Console.WriteLine($"Transfer {transfer.Name} foi criado com sucesso!");
         }
 
         public static void DeleteSome(string dbname, Dictionary<string, Account> accounts)
