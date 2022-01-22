@@ -15,7 +15,32 @@ namespace ConsoleApp
         {
             string dbname = "Arthurpmrs2";
             ApplicationStarterCommand starterCommand = new ApplicationStarterCommand(dbname);
+            //Dictionary<string, Account> accounts = CreateSomeAccounts(dbname);
             Dictionary<string, Account> accounts = starterCommand.Load();
+            //AddSomeTransactions(dbname, accounts);
+
+
+            DBHandler AccountHandler = DBHandlerFactory.Create(HandlerType.Account, dbname);
+
+            DeleteAccountCommand AccDelComm = new DeleteAccountCommand(AccountHandler, accounts);
+            AccDelComm.Delete(accounts["ContaCorrenteBB"]);
+
+
+            Console.WriteLine("-----------------------------------------------");
+            Console.WriteLine("-------------------acclist---------------------");
+            Console.WriteLine("-----------------------------------------------");
+
+            foreach (KeyValuePair<string, Account> acc in accounts)
+            {
+                Console.WriteLine(acc.Key);
+            }
+
+
+
+            Console.WriteLine("-----------------------------------------------");
+            Console.WriteLine("--------------------show-----------------------");
+            Console.WriteLine("-----------------------------------------------");
+
 
             ShowCommand showCommand = new ShowCommand(accounts);
             showCommand.ShowAllEntries();
@@ -43,6 +68,35 @@ namespace ConsoleApp
 
             //DeleteTransferCommand deleteTransfer = new DeleteTransferCommand(transferHandler, accounts["ContaCorrenteBB"]);
             //deleteTransfer.Delete(pixBB);
+        }
+        public static Dictionary<string, Account> CreateSomeAccounts(string dbname)
+        {
+            Dictionary<string, Account> accounts = new Dictionary<string, Account>();
+            DBHandler accountHandler = DBHandlerFactory.Create(HandlerType.Account, dbname);
+            CreateAccountCommand conn_account = new CreateAccountCommand(accountHandler);
+            Account bbAccount = conn_account.Create("ContaCorrenteBB", "BB");
+            accounts.Add("ContaCorrenteBB", bbAccount);
+
+            Account cefAccount = conn_account.Create("Poupança", "CEF");
+            accounts.Add("Poupança", cefAccount);
+
+            Account nbAccount = conn_account.Create("ContaCorrenteNB", "NuBank");
+            accounts.Add("ContaCorrenteNB", nbAccount);
+
+            DBHandler transferHandler = DBHandlerFactory.Create(HandlerType.Transfer, dbname);
+
+            CreateTransferCommand BBTransfer = new CreateTransferCommand(transferHandler, accounts["ContaCorrenteBB"]);
+            BBTransfer.Create("Pix", "PixBB", "arthurpmrs@gmail.com");
+            BBTransfer.Create("Transference", "Conta Corrente", "10284942037275");
+
+            CreateTransferCommand CEFTransfer = new CreateTransferCommand(transferHandler, accounts["Poupança"]);
+            CEFTransfer.Create("Transference", "Poupança", "1834905920438");
+
+            CreateTransferCommand NBTransfer = new CreateTransferCommand(transferHandler, accounts["ContaCorrenteNB"]);
+            NBTransfer.Create("Pix", "PixNB", "834727502752523");
+
+            return accounts;
+
         }
         public static void AddSomeTransactions(string dbname, Dictionary<string, Account> accounts)
         {
