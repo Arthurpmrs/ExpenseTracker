@@ -32,6 +32,7 @@ namespace Application.TransferCommands
                     fieldsFromDB.TransferIdentifier
                     );
                 Console.WriteLine($"Transfer Method >{name}< in already exists in Account {this.Account.Name}.");
+                this.Account.AddTransfer(transfer);
             } else
             {
                 Fields fields = new Fields()
@@ -47,7 +48,7 @@ namespace Application.TransferCommands
                 Console.WriteLine(transferType);
 
                 transfer = TransferFactory.Create(transferType, ID, this.Account.ID, name, identifier);
-                this.Account.Transfers.Add(name, transfer);
+                this.Account.AddTransfer(transfer);
             }
             return transfer;
         }

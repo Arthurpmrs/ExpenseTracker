@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Infrastructure;
 using Domain.Entities;
+using Domain.Exceptions;
+using Application.TransactionCommands;
 
 
 namespace Application.AccountCommands
@@ -40,6 +42,18 @@ namespace Application.AccountCommands
                 account = new Account(ID, name, bank);
             }
             return account;
+        }
+        public void GetStoredTransactions(DBHandler handler, Account account)
+        {
+            LoadTransactionsCommand command = new LoadTransactionsCommand(handler, account);
+            try
+            {
+                account.Transactions = command.LoadAccountTransactions();
+            } catch (EmptyStorageException e)
+            {
+                Console.WriteLine($"There are no Transactions for <{account.Name}> account.");
+            }
+            
         }
 
     }
