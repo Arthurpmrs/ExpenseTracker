@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -105,7 +106,6 @@ namespace Infrastructure
 
             if (props[0].Item1 == "AccountID")
             {
-                Console.WriteLine(props[0]);
                 _DeleteByID(long.Parse(props[0].Item2));
             }
         }
@@ -118,11 +118,53 @@ namespace Infrastructure
                 using (SQLiteCommand cmd = new SQLiteCommand(conn))
                 {
                     cmd.CommandText = @"DELETE FROM account WHERE rowid = @id";
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.Prepare();
+                    cmd.ExecuteNonQuery();
                     cmd.CommandText = @"DELETE FROM transfer WHERE account_id = @id";
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.Prepare();
+                    cmd.ExecuteNonQuery();
                     cmd.CommandText = @"DELETE FROM trans WHERE account_id = @id";
                     cmd.Parameters.AddWithValue("@id", id);
                     cmd.Prepare();
                     cmd.ExecuteNonQuery();
+                }
+            }
+        }
+        public override void EditByID(long id, Fields field)
+        {
+            List<Tuple<string, string>> props = FieldsHandler.GetSettedProperties(field);
+
+            using (SQLiteConnection conn = new SQLiteConnection(this.ConnectionString))
+            {
+                conn.Open();
+                using (SQLiteCommand cmd = new SQLiteCommand(conn))
+                {
+                    foreach (Tuple<string, string> prop in props)
+
+                    {
+                        if (prop.Item1 == "AccountName")
+                        {
+                            cmd.CommandText = @"UPDATE account
+                                                SET name = @newName
+                                                WHERE rowid = @id";
+                            cmd.Parameters.AddWithValue("@id", id);
+                            cmd.Parameters.AddWithValue("@newName", prop.Item2) ;
+                            cmd.Prepare();
+                            cmd.ExecuteNonQuery();
+                        }
+                        if (prop.Item1 == "BankName")
+                        {
+                            cmd.CommandText = @"UPDATE account
+                                                SET bank = @newBank
+                                                WHERE rowid = @id";
+                            cmd.Parameters.AddWithValue("@id", id);
+                            cmd.Parameters.AddWithValue("@newBank", prop.Item2);
+                            cmd.Prepare();
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
                 }
             }
         }

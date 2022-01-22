@@ -21,29 +21,48 @@ namespace ConsoleApp
 
 
             DBHandler AccountHandler = DBHandlerFactory.Create(HandlerType.Account, dbname);
+            EditAccountCommand editAccountCommand = new EditAccountCommand(AccountHandler, accounts);
 
-            DeleteAccountCommand AccDelComm = new DeleteAccountCommand(AccountHandler, accounts);
-            AccDelComm.Delete(accounts["ContaCorrenteBB"]);
-
-
-            Console.WriteLine("-----------------------------------------------");
-            Console.WriteLine("-------------------acclist---------------------");
-            Console.WriteLine("-----------------------------------------------");
-
-            foreach (KeyValuePair<string, Account> acc in accounts)
-            {
-                Console.WriteLine(acc.Key);
-            }
+            editAccountCommand.Edit(accounts["PoupançaCEF"], newBank: "Caixa");
 
 
 
-            Console.WriteLine("-----------------------------------------------");
-            Console.WriteLine("--------------------show-----------------------");
-            Console.WriteLine("-----------------------------------------------");
+            //foreach (KeyValuePair<string, Account> acc in accounts)
+            //{
+            //    Console.WriteLine($"{acc.Value.Name} | ID: {acc.Value.ID}");
+            //}
 
 
-            ShowCommand showCommand = new ShowCommand(accounts);
-            showCommand.ShowAllEntries();
+
+            //foreach (KeyValuePair<string, Account> acc in accounts)
+            //{
+            //    Console.WriteLine(acc.Key);
+            //}
+
+            //DBHandler AccountHandler = DBHandlerFactory.Create(HandlerType.Account, dbname);
+
+            //DeleteAccountCommand AccDelComm = new DeleteAccountCommand(AccountHandler, accounts);
+            //AccDelComm.Delete(accounts["ContaCorrenteBB"]);
+
+
+            //Console.WriteLine("-----------------------------------------------");
+            //Console.WriteLine("-------------------acclist---------------------");
+            //Console.WriteLine("-----------------------------------------------");
+
+            //foreach (KeyValuePair<string, Account> acc in accounts)
+            //{
+            //    Console.WriteLine(acc.Key);
+            //}
+
+
+
+            //Console.WriteLine("-----------------------------------------------");
+            //Console.WriteLine("--------------------show-----------------------");
+            //Console.WriteLine("-----------------------------------------------");
+
+
+            //ShowCommand showCommand = new ShowCommand(accounts);
+            //showCommand.ShowAllEntries();
 
 
 

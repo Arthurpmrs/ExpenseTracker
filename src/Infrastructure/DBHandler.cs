@@ -29,6 +29,7 @@ namespace Infrastructure
         public abstract Fields GetByName(string name);
         public abstract List<Fields> GetAll(Fields field = null);
         public abstract void DeleteBy(Fields field);
+        public abstract void EditByID(long id, Fields field);
     }
     public enum HandlerType
     {

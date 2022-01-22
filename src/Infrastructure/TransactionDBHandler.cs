@@ -166,5 +166,9 @@ namespace Infrastructure
                 }
             }
         }
+        public override void EditByID(long id, Fields field)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
