@@ -29,26 +29,19 @@ namespace Application.AccountCommands
             Fields field = new Fields();
             if (newName != null)
             {
-                account.Name = newName;
                 field.AccountName = newName;
+                account.Name = newName;
             }
             if (newBank != null)
             {
-                account.Bank = newBank;
                 field.BankName = newBank;
+                account.Bank = newBank;
             }
-           
+
             this.Handler.EditByID(account.ID, field);
 
             this.Accounts.Remove(accountKey);
-            if(newName == null)
-            {
-                this.Accounts.Add(accountKey, account);
-            } else
-            {
-                this.Accounts.Add(newName, account);
-            }
-
+            this.Accounts.Add(account.Name, account);
         }
 
         private string GetAccountKey(Account account)

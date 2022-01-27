@@ -36,6 +36,22 @@ namespace ConsoleApp
             };
             transfer.Handler = CommandHandler.Create<string, string, string, string>(CreateTransfer);
 
+            Command editTransfer = new Command("transfer", "Edição de um meio de transferência de dinheiro.")
+            {
+                new Argument<string>("transfer-name", "Nome atual do meio de transferência."),
+                new Argument<string>("newName", "Novo Nome."),
+                new Argument<string>("newIdentifier", "Novo código de identificação.")
+            };
+            editTransfer.Handler = CommandHandler.Create<string, string, string>(EditTransfer);
+
+
+
+
+
+            Command edit = new Command("edit", "Edição de campos de entidade.")
+            {
+                editTransfer
+            };
 
             Command create = new Command("create", "Criação de uma das entidade.")
             {
@@ -45,8 +61,32 @@ namespace ConsoleApp
 
             rootCommand.Add(show);
             rootCommand.Add(create);
+            rootCommand.Add(edit);
 
             return rootCommand.Invoke(args);
+        }
+        public static int EditTransfer(string transferName, string newName, string newIdentifier)
+        {
+            string dbname = "Arthurpmrs2";
+            ApplicationStarterCommand starterCommand = new ApplicationStarterCommand(dbname);
+            Dictionary<string, Account> accounts = starterCommand.Load();
+
+            DBHandler TransferHandler = DBHandlerFactory.Create(HandlerType.Transfer, dbname);
+            EditTransferCommand editTrCommand = new EditTransferCommand(TransferHandler, accounts);
+
+            foreach (KeyValuePair<string, Account> account in accounts)
+            {
+                foreach(KeyValuePair<string, Transfer> transfer in account.Value.Transfers)
+                {
+                    if (transfer.Key == transferName)
+                    {
+                        editTrCommand.Edit(transfer.Value, newName, newIdentifier);
+                        return 1;
+                    }
+                }
+            }
+            throw new Exception("There is no such Transfer in DataBase.");
+            
         }
         public static void Show()
         {

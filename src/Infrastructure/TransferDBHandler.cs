@@ -134,7 +134,39 @@ namespace Infrastructure
         }
         public override void EditByID(long id, Fields field)
         {
-            throw new NotImplementedException();
+            List<Tuple<string, string>> props = FieldsHandler.GetSettedProperties(field);
+
+            using (SQLiteConnection conn = new SQLiteConnection(this.ConnectionString))
+            {
+                conn.Open();
+                using (SQLiteCommand cmd = new SQLiteCommand(conn))
+                {
+                    foreach (Tuple<string, string> prop in props)
+
+                    {
+                        if (prop.Item1 == "TransferName")
+                        {
+                            cmd.CommandText = @"UPDATE transfer
+                                                SET name = @newName
+                                                WHERE rowid = @id";
+                            cmd.Parameters.AddWithValue("@id", id);
+                            cmd.Parameters.AddWithValue("@newName", prop.Item2);
+                            cmd.Prepare();
+                            cmd.ExecuteNonQuery();
+                        }
+                        if (prop.Item1 == "TransferIdentifier")
+                        {
+                            cmd.CommandText = @"UPDATE transfer
+                                                SET identifier = @newIdentifier
+                                                WHERE rowid = @id";
+                            cmd.Parameters.AddWithValue("@id", id);
+                            cmd.Parameters.AddWithValue("@newIdentifier", prop.Item2);
+                            cmd.Prepare();
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                }
+            }
         }
     }
 }
