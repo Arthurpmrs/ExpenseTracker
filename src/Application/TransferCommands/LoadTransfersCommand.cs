@@ -47,5 +47,25 @@ namespace Application.TransferCommands
             }
             return Transfers;
         }
+        public Transfer LoadTransferByName(string name)
+        {
+            Fields fields = this.Handler.GetByName(name);
+            if (fields == null)
+            {
+                throw new Exception("There is no such transfer in DataBase.");
+            }
+            else
+            {
+                Enum.TryParse(fields.TransferType, out TransferType type);
+                Transfer transfer = TransferFactory.Create(
+                    type,
+                    fields.TransferID,
+                    fields.AccountID,
+                    fields.TransferName,
+                    fields.TransferIdentifier
+                    );
+                return transfer;
+            }
+        }
     }
 }

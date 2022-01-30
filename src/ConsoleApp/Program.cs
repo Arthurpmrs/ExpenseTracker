@@ -13,7 +13,7 @@ namespace ConsoleApp
 {
     class Program
     {
-        static int Main(string[] args)
+        static int EntryPoint(string[] args)
         {
             RootCommand rootCommand = new RootCommand();
 

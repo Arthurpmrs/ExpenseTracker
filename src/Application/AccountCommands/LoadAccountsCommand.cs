@@ -34,8 +34,20 @@ namespace Application.AccountCommands
                         );
                 }
             }
-            
+
             return Accounts;
+        }
+        public Account LoadAccountByName(string name)
+        {
+            Fields fields = this.Handler.GetByName(name);
+            if (fields == null)
+            {
+                throw new Exception("There is no such account in DataBase.");
+            } else
+            {
+                Account account = new Account(fields.AccountID, fields.AccountName, fields.BankName);
+                return account;
+            }
         }
     }
 }

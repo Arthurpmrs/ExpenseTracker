@@ -49,8 +49,6 @@ namespace Application.TransactionCommands
                 Transfer.ID,
                 Account.ID
                 );
-            this.Transfer.Transactions.Add(transaction);
-            this.Account.Transactions.Add(transaction);
             return transaction;
         }
 
